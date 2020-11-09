@@ -1,5 +1,6 @@
 package com.glovoapp.ownership.examples.packageA;
 
+import static com.glovoapp.ownership.examples.ExampleOwner.OWNER_WITH_ONLY_METHODS;
 import static com.glovoapp.ownership.examples.ExampleOwner.TEAM_A;
 
 import com.glovoapp.ownership.examples.ExampleOwnershipAnnotation;
@@ -10,5 +11,9 @@ import lombok.RequiredArgsConstructor;
 public final class FacadeA {
 
     private final ServiceA service;
+
+    @ExampleOwnershipAnnotation(owner = OWNER_WITH_ONLY_METHODS)
+    public void methodOwnedByOwnerWithOnlyMethods() {
+    }
 
 }
