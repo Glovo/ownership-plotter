@@ -4,6 +4,7 @@ public enum ExampleOwner {
 
     EXAMPLE_OWNER,
     TEAM_A,
-    TEAM_B
+    TEAM_B,
+    OWNER_WITH_ONLY_METHODS
 
 }
