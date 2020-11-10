@@ -10,6 +10,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
@@ -100,10 +101,26 @@ public final class PlantUMLDiagramDataTransformer implements DiagramDataTransfor
                        ))
                        .distinct()
                        .forEach(owner -> {
-                           final String ownerId = idContainer.putAndGetId(owner);
                            final String classesDefinitions = getClassesDefinitions(
                                desiredOwner, domainOwnership, idContainer, owner, drawLater
                            );
+
+                           if (
+                               // Ignore owners that have no relation to desired owner
+                               desiredOwner != null
+                                   && classesDefinitions.isEmpty()
+                                   && domainOwnership.stream()
+                                                     .filter(it -> desiredOwner.equals(it.getClassOwner()))
+                                                     .map(ClassOwnership::getMethodOwners)
+                                                     .map(Map::values)
+                                                     .flatMap(Collection::stream)
+                                                     .noneMatch(owner::equals)
+
+                           ) {
+                               return;
+                           }
+
+                           final String ownerId = idContainer.putAndGetId(owner);
                            diagram.append("package ")
                                   .append(owner)
                                   .append(" as ")
