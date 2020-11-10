@@ -192,7 +192,8 @@ public final class PlantUMLDiagramDataTransformer implements DiagramDataTransfor
 
                            final String methodDefinitions = getMethodDefinitions(
                                ownedClass,
-                               idContainer
+                               idContainer,
+                               drawLater
                            );
 
                            diagram.append(" {\n")
@@ -222,15 +223,32 @@ public final class PlantUMLDiagramDataTransformer implements DiagramDataTransfor
         return diagram.toString();
     }
 
-    private static String getMethodDefinitions(final ClassOwnership ownedClass, final IdContainer idContainer) {
-        return ownedClass.getMethodOwners()
-                         .keySet()
-                         .stream()
-                         .map(method -> {
-                             final String methodId = idContainer.putAndGetId(method);
-                             return "    rectangle " + method.getName() + " as " + methodId + '\n';
-                         })
-                         .collect(Collectors.joining());
+    private static String getMethodDefinitions(final ClassOwnership ownedClass,
+                                               final IdContainer idContainer,
+                                               final List<String> drawLater) {
+        final List<String> methodIds = new ArrayList<>();
+        final String result = ownedClass.getMethodOwners()
+                                        .keySet()
+                                        .stream()
+                                        .map(method -> {
+                                            final String methodId = idContainer.putAndGetId(method);
+                                            methodIds.add(methodId);
+                                            return "    rectangle " + method.getName() + " as " + methodId + '\n';
+                                        })
+                                        .collect(Collectors.joining());
+        methodIds.forEach(methodId ->
+            methodIds.stream()
+                     .filter(anotherMethodId -> !methodId.equals(anotherMethodId))
+                     .forEach(anotherMethodId -> {
+                         if (RANDOM.nextBoolean()) {
+                             drawLater.add(
+                                 methodId + " -[hidden]" + randomRepeat(0, 2, "-") + "> " + anotherMethodId
+                                     + '\n'
+                             );
+                         }
+                     })
+        );
+        return result;
     }
 
     /**
