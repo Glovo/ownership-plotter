@@ -43,6 +43,16 @@ public interface OwnershipAnnotationDefinition {
      */
     Optional<String> getOwner(final AnnotatedElement givenElement);
 
+    /**
+     * @param another a definition to be used as an alternative
+     * @return a composite definition that uses another definition if this definition cannot find the owner
+     */
+    default OwnershipAnnotationDefinition or(final OwnershipAnnotationDefinition another) {
+        return givenElement -> Optional.of(this.getOwner(givenElement))
+                                       .filter(Optional::isPresent)
+                                       .orElseGet(() -> another.getOwner(givenElement));
+    }
+
     default boolean hasOwner(final AnnotatedElement givenElement) {
         return getOwner(givenElement).isPresent();
     }
