@@ -1,11 +1,13 @@
 package com.glovoapp.ownership.plotting.plantuml;
 
+import static java.util.Arrays.asList;
 import static java.util.UUID.randomUUID;
 
 import com.glovoapp.ownership.ClassOwnership;
 import com.glovoapp.ownership.plotting.DiagramDataTransformer;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
@@ -22,6 +24,26 @@ import net.sourceforge.plantuml.SourceStringReader;
 public final class PlantUMLDiagramDataTransformer implements DiagramDataTransformer<SourceStringReader> {
 
     private static final Random RANDOM = new Random();
+
+    private static String randomArrowColor() {
+        final List<Integer> cmyList = asList(77, 0, RANDOM.nextInt(77));
+        Collections.shuffle(cmyList);
+        return cmykToRgb(cmyList.get(0), cmyList.get(1), cmyList.get(2), 14);
+    }
+
+    private static String cmykToRgb(final int c, final int m, final int y, final int k) {
+        int r = (int) (255 * (1.0 - c / 100.0) * (1.0 - k / 100.0));
+        int g = (int) (255 * (1.0 - m / 100.0) * (1.0 - k / 100.0));
+        int b = (int) (255 * (1.0 - y / 100.0) * (1.0 - k / 100.0));
+
+        return "#" + hexPart(r) + hexPart(g) + hexPart(b);
+    }
+
+    private static String hexPart(final int value) {
+        final String asHex = Integer.toHexString(value)
+                                    .toUpperCase();
+        return asHex.length() != 2 ? '0' + asHex : asHex;
+    }
 
     private static final String DIAGRAM_CONFIGURATION
         // Owners (teams) are represented by packages
@@ -139,7 +161,9 @@ public final class PlantUMLDiagramDataTransformer implements DiagramDataTransfor
                                         }
 
                                         diagram.append(classId)
-                                               .append(" =[#E74C3C,bold]=")
+                                               .append(" =[")
+                                               .append(randomArrowColor())
+                                               .append(",bold]=")
                                                .append(randomRepeat(1, 5, "="))
                                                .append("|> ")
                                                .append(dependencyClassId)
@@ -170,7 +194,9 @@ public final class PlantUMLDiagramDataTransformer implements DiagramDataTransfor
                              return;
                          }
                          diagram.append(methodClassId)
-                                .append(" -[#DC7633,dashed]-")
+                                .append(" -[")
+                                .append(randomArrowColor())
+                                .append(",dashed]-")
                                 .append(randomRepeat(1, 5, "-"))
                                 .append("> ")
                                 .append(ownerId)
