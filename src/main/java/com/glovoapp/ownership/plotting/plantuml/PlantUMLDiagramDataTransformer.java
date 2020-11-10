@@ -4,8 +4,10 @@ import static java.util.UUID.randomUUID;
 
 import com.glovoapp.ownership.ClassOwnership;
 import com.glovoapp.ownership.plotting.DiagramDataTransformer;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
@@ -23,7 +25,8 @@ public final class PlantUMLDiagramDataTransformer implements DiagramDataTransfor
 
     private static final String DIAGRAM_CONFIGURATION
         // Owners (teams) are represented by packages
-        = "skinparam package {\n"
+        = "\n/' colors configuration '/\n"
+        + "skinparam package {\n"
         + "  backgroundColor LightGray\n"
         + "  borderColor LightGray\n"
         + "}\n"
@@ -54,7 +57,9 @@ public final class PlantUMLDiagramDataTransformer implements DiagramDataTransfor
     public final SourceStringReader transformToDiagramData(final Collection<ClassOwnership> domainOwnership) {
         final IdContainer idContainer = new IdContainer();
         final StringBuilder diagram = new StringBuilder("@startuml\n").append(DIAGRAM_CONFIGURATION);
+        final List<String> drawLater = new ArrayList<>();
 
+        diagram.append("\n/' domain definitions '/\n");
         domainOwnership.stream()
                        .flatMap(ownership -> Stream.concat(
                            Stream.of(ownership.getClassOwner())
@@ -66,7 +71,9 @@ public final class PlantUMLDiagramDataTransformer implements DiagramDataTransfor
                        .distinct()
                        .forEach(owner -> {
                            final String ownerId = idContainer.putAndGetId(owner);
-                           final String classesDefinitions = getClassesDefinitions(domainOwnership, idContainer, owner);
+                           final String classesDefinitions = getClassesDefinitions(
+                               domainOwnership, idContainer, owner, drawLater
+                           );
                            diagram.append("package ")
                                   .append(owner)
                                   .append(" as ")
@@ -84,15 +91,15 @@ public final class PlantUMLDiagramDataTransformer implements DiagramDataTransfor
                                   .append("}\n");
                        });
 
-        // Draw with no ownership that have methods with ownership
+        diagram.append("\n/' classes with no ownership that have methods with ownership '/\n");
         domainOwnership.stream()
                        .filter(ownership -> ownership.getClassOwner() == null)
                        .filter(ownership -> !ownership.getMethodOwners()
                                                       .isEmpty())
-                       .map(ownership -> getClassesDefinitions(domainOwnership, idContainer, null))
+                       .map(ownership -> getClassesDefinitions(domainOwnership, idContainer, null, drawLater))
                        .forEach(diagram::append);
 
-        // Draw class ownerships
+        diagram.append("\n/' class ownerships '/\n");
         domainOwnership.stream()
                        .filter(ownership -> !ownership.getDependenciesOwnership()
                                                       .isEmpty())
@@ -121,7 +128,7 @@ public final class PlantUMLDiagramDataTransformer implements DiagramDataTransfor
                                     });
                        });
 
-        // Draw method ownerships
+        diagram.append("\n/' method ownerships '/\n");
         domainOwnership.forEach(ownership ->
             ownership.getMethodOwners()
                      .entrySet()
@@ -150,6 +157,8 @@ public final class PlantUMLDiagramDataTransformer implements DiagramDataTransfor
                      })
         );
 
+        diagram.append("\n/' drawLater lines '/\n");
+        drawLater.forEach(diagram::append);
         diagram.append("@enduml\n");
         final String resultDiagram = diagram.toString();
 
@@ -166,12 +175,15 @@ public final class PlantUMLDiagramDataTransformer implements DiagramDataTransfor
 
     private String getClassesDefinitions(final Collection<ClassOwnership> domainOwnership,
                                          final IdContainer idContainer,
-                                         final String owner) {
+                                         final String owner,
+                                         final List<String> drawLater) {
         final StringBuilder diagram = new StringBuilder();
+        final List<String> classIds = new ArrayList<>();
         domainOwnership.stream()
                        .filter(it -> Objects.equals(owner, it.getClassOwner()))
                        .forEach(ownedClass -> {
                            final String classId = idContainer.putAndGetId(ownedClass.getTheClass());
+                           classIds.add(classId);
                            diagram.append("  folder ")
                                   .append(ownedClass.getTheClass()
                                                     .getSimpleName())
@@ -195,6 +207,18 @@ public final class PlantUMLDiagramDataTransformer implements DiagramDataTransfor
                                   )
                                   .append("  }\n");
                        });
+        classIds.forEach(classId ->
+            classIds.stream()
+                    .filter(anotherClassId -> !classId.equals(anotherClassId))
+                    .forEach(anotherClassId -> {
+                        if (RANDOM.nextBoolean()) {
+                            drawLater.add(
+                                classId + " -[hidden]" + (RANDOM.nextBoolean() ? "-" : "") + "> " + anotherClassId
+                                    + '\n'
+                            );
+                        }
+                    })
+        );
         return diagram.toString();
     }
 
