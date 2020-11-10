@@ -269,16 +269,16 @@ public final class PlantUMLDiagramDataTransformer implements DiagramDataTransfor
                            }
                        });
         classIds.forEach(classId ->
-            classIds.stream()
-                    .filter(anotherClassId -> !classId.equals(anotherClassId))
-                    .forEach(anotherClassId -> {
-                        if (RANDOM.nextBoolean()) {
-                            drawLater.add(
-                                classId + " -[hidden]" + randomRepeat(0, 3, "-") + "> " + anotherClassId
-                                    + '\n'
-                            );
-                        }
-                    })
+            Stream.concat(classIds.stream(), classIds.stream())
+                  .filter(anotherClassId -> !classId.equals(anotherClassId))
+                  .forEach(anotherClassId -> {
+                      if (RANDOM.nextBoolean()) {
+                          drawLater.add(
+                              classId + " -[hidden]" + randomRepeat(0, 3, "-") + "> " + anotherClassId
+                                  + '\n'
+                          );
+                      }
+                  })
         );
         return diagram.toString();
     }
