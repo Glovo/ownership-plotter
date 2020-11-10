@@ -5,6 +5,7 @@ import java.util.Collection;
 
 public interface DiagramDataTransformer<ClassOwnershipDiagramData> {
 
-    ClassOwnershipDiagramData transformToDiagramData(final Collection<ClassOwnership> domainOwnership);
+    ClassOwnershipDiagramData transformToDiagramData(final Object ownerPerspective,
+                                                     final Collection<ClassOwnership> domainOwnership);
 
 }

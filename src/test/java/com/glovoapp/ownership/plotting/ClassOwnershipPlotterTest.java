@@ -1,5 +1,6 @@
 package com.glovoapp.ownership.plotting;
 
+import static com.glovoapp.ownership.examples.ExampleOwner.TEAM_A;
 import static com.glovoapp.ownership.plotting.plantuml.PlantUMLDiagramDataPipelines.pipelineForSVG;
 
 import com.glovoapp.ownership.AnnotationBasedClassOwnershipExtractor;
@@ -32,7 +33,8 @@ class ClassOwnershipPlotterTest {
 
     @Test
     void writeDiagramOfClassesLoadedInContextToFile_shouldWriteDiagram() {
-        classOwnershipPlotter.writeDiagramOfClassesLoadedInContextToFile("/tmp/test.svg");
+        classOwnershipPlotter.writeDiagramOfClassesLoadedInContextToFile(null, "/tmp/test-null-owner.svg");
+        classOwnershipPlotter.writeDiagramOfClassesLoadedInContextToFile(TEAM_A, "/tmp/test-team-a.svg");
     }
 
 }

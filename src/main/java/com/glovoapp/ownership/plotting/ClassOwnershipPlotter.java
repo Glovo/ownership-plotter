@@ -26,12 +26,14 @@ public final class ClassOwnershipPlotter {
     private final ClassOwnershipExtractor extractor;
     private final DiagramDataPipeline diagramDataPipeline;
 
-    public final void writeDiagramOfClassesLoadedInContextToFile(final String fileName) {
-        writeDiagramToFile(fileName, getLoadedClassesFrom(currentThread().getContextClassLoader()));
+    public final void writeDiagramOfClassesLoadedInContextToFile(final Object ownerPerspective, final String fileName) {
+        writeDiagramToFile(ownerPerspective, fileName, getLoadedClassesFrom(currentThread().getContextClassLoader()));
     }
 
     @SneakyThrows
-    public final void writeDiagramToFile(final String fileName, final Collection<Class<?>> domain) {
+    public final void writeDiagramToFile(final Object ownerPerspective,
+                                         final String fileName,
+                                         final Collection<Class<?>> domain) {
         final Set<ClassOwnership> domainOwnership = domain.stream()
                                                           .map(extractor::getOwnershipOf)
                                                           .filter(Optional::isPresent)
@@ -39,7 +41,7 @@ public final class ClassOwnershipPlotter {
                                                           .collect(Collectors.toSet());
 
         final FileOutputStream fileOutputStream = new FileOutputStream(fileName);
-        diagramDataPipeline.generateDiagram(domainOwnership, fileOutputStream);
+        diagramDataPipeline.generateDiagram(ownerPerspective, domainOwnership, fileOutputStream);
         fileOutputStream.close();
     }
 

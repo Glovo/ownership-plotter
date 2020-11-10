@@ -54,7 +54,8 @@ public final class PlantUMLDiagramDataTransformer implements DiagramDataTransfor
         + "}\n";
 
     @Override
-    public final SourceStringReader transformToDiagramData(final Collection<ClassOwnership> domainOwnership) {
+    public final SourceStringReader transformToDiagramData(final Object ownerPerspective,
+                                                           final Collection<ClassOwnership> domainOwnership) {
         final IdContainer idContainer = new IdContainer();
         final StringBuilder diagram = new StringBuilder("@startuml\n").append(DIAGRAM_CONFIGURATION);
         final List<String> drawLater = new ArrayList<>();
