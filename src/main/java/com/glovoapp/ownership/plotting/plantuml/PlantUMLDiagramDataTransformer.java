@@ -9,13 +9,17 @@ import java.util.HashMap;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Random;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import lombok.extern.java.Log;
 import net.sourceforge.plantuml.SourceStringReader;
 
 @Log
 public final class PlantUMLDiagramDataTransformer implements DiagramDataTransformer<SourceStringReader> {
+
+    private static final Random RANDOM = new Random();
 
     private static final String DIAGRAM_CONFIGURATION
         // Owners (teams) are represented by packages
@@ -80,22 +84,38 @@ public final class PlantUMLDiagramDataTransformer implements DiagramDataTransfor
                                   .append("}\n");
                        });
 
+        // Draw with no ownership that have methods with ownership
+        domainOwnership.stream()
+                       .filter(ownership -> ownership.getClassOwner() == null)
+                       .filter(ownership -> !ownership.getMethodOwners()
+                                                      .isEmpty())
+                       .map(ownership -> getClassesDefinitions(domainOwnership, idContainer, null))
+                       .forEach(diagram::append);
+
         // Draw class ownerships
         domainOwnership.stream()
                        .filter(ownership -> !ownership.getDependenciesOwnership()
                                                       .isEmpty())
                        .forEach(ownership -> {
                            final String classId = idContainer.getId(ownership.getTheClass())
-                                                             .orElseThrow(NullPointerException::new);
+                                                             .orElseThrow(() -> new NullPointerException(
+                                                                 "failed to find id of class "
+                                                                     + ownership.getTheClass()
+                                                             ));
                            ownership.getDependencyOwnershipsStream()
                                     .map(Entry::getValue)
                                     .forEach(dependencyOwnership -> {
                                         final String dependencyClassId
                                             = idContainer.getId(dependencyOwnership.getTheClass())
-                                                         .orElseThrow(NullPointerException::new);
+                                                         .orElseThrow(() -> new NullPointerException(
+                                                             "failed to find id of dependency class "
+                                                                 + dependencyOwnership.getTheClass()
+                                                         ));
 
                                         diagram.append(classId)
-                                               .append(" =[#E74C3C,bold]==|> ")
+                                               .append(" =[#E74C3C,bold]=")
+                                               .append(randomRepeat(1, 5, "="))
+                                               .append("|> ")
                                                .append(dependencyClassId)
                                                .append('\n');
                                     });
@@ -112,11 +132,19 @@ public final class PlantUMLDiagramDataTransformer implements DiagramDataTransfor
                      )
                      .forEach(methodOwner -> {
                          final String methodId = idContainer.getId(methodOwner.getKey())
-                                                            .orElseThrow(NullPointerException::new);
+                                                            .orElseThrow(() -> new NullPointerException(
+                                                                "failed to find id of method "
+                                                                    + methodOwner.getKey()
+                                                            ));
                          final String ownerId = idContainer.getId(methodOwner.getValue())
-                                                           .orElseThrow(NullPointerException::new);
+                                                           .orElseThrow(() -> new NullPointerException(
+                                                               "failed to find id of method owner "
+                                                                   + methodOwner.getValue()
+                                                           ));
                          diagram.append(methodId)
-                                .append(" -[#DC7633,dashed]--> ")
+                                .append(" -[#DC7633,dashed]-")
+                                .append(randomRepeat(1, 5, "-"))
+                                .append("> ")
                                 .append(ownerId)
                                 .append('\n');
                      })
@@ -129,12 +157,19 @@ public final class PlantUMLDiagramDataTransformer implements DiagramDataTransfor
         return new SourceStringReader(resultDiagram);
     }
 
+    private static String randomRepeat(final int minCount, final int maxCount, final String toRepeat) {
+        final int repeatTimes = RANDOM.nextInt(maxCount - minCount) + minCount;
+        return IntStream.range(0, repeatTimes)
+                        .mapToObj(it -> toRepeat)
+                        .collect(Collectors.joining());
+    }
+
     private String getClassesDefinitions(final Collection<ClassOwnership> domainOwnership,
                                          final IdContainer idContainer,
                                          final String owner) {
         final StringBuilder diagram = new StringBuilder();
         domainOwnership.stream()
-                       .filter(it -> owner.equals(it.getClassOwner()))
+                       .filter(it -> Objects.equals(owner, it.getClassOwner()))
                        .forEach(ownedClass -> {
                            final String classId = idContainer.putAndGetId(ownedClass.getTheClass());
                            diagram.append("  folder ")
