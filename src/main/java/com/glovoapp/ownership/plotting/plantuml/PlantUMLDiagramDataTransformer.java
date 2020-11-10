@@ -138,17 +138,17 @@ public final class PlantUMLDiagramDataTransformer implements DiagramDataTransfor
                                      .equals(ownership.getClassOwner())
                      )
                      .forEach(methodOwner -> {
-                         final String methodId = idContainer.getId(methodOwner.getKey())
-                                                            .orElseThrow(() -> new NullPointerException(
-                                                                "failed to find id of method "
-                                                                    + methodOwner.getKey()
-                                                            ));
+                         final String methodClassId = idContainer.getId(ownership.getTheClass())
+                                                                 .orElseThrow(() -> new NullPointerException(
+                                                                     "failed to find id of method class "
+                                                                         + ownership.getTheClass()
+                                                                 ));
                          final String ownerId = idContainer.getId(methodOwner.getValue())
                                                            .orElseThrow(() -> new NullPointerException(
                                                                "failed to find id of method owner "
                                                                    + methodOwner.getValue()
                                                            ));
-                         diagram.append(methodId)
+                         diagram.append(methodClassId)
                                 .append(" -[#DC7633,dashed]-")
                                 .append(randomRepeat(1, 5, "-"))
                                 .append("> ")
@@ -190,22 +190,10 @@ public final class PlantUMLDiagramDataTransformer implements DiagramDataTransfor
                                   .append(" as ")
                                   .append(classId);
 
-                           final String methodDefinitions = getMethodDefinitions(
-                               ownedClass,
-                               idContainer,
-                               drawLater
-                           );
-
                            diagram.append(" {\n")
-                                  .append(
-                                      methodDefinitions.isEmpty()
-                                          /*
-                                           TODO: When there are no methods, we need to render an invisible element,
-                                            otherwise the whole folder gets messed up.
-                                           */
-                                          ? "    agent invisible_" + IdContainer.generateRandomId() + '\n'
-                                          : methodDefinitions
-                                  )
+                                  .append("    agent invisible_")
+                                  .append(IdContainer.generateRandomId())
+                                  .append('\n')
                                   .append("  }\n");
                        });
         classIds.forEach(classId ->
@@ -221,34 +209,6 @@ public final class PlantUMLDiagramDataTransformer implements DiagramDataTransfor
                     })
         );
         return diagram.toString();
-    }
-
-    private static String getMethodDefinitions(final ClassOwnership ownedClass,
-                                               final IdContainer idContainer,
-                                               final List<String> drawLater) {
-        final List<String> methodIds = new ArrayList<>();
-        final String result = ownedClass.getMethodOwners()
-                                        .keySet()
-                                        .stream()
-                                        .map(method -> {
-                                            final String methodId = idContainer.putAndGetId(method);
-                                            methodIds.add(methodId);
-                                            return "    rectangle " + method.getName() + " as " + methodId + '\n';
-                                        })
-                                        .collect(Collectors.joining());
-        methodIds.forEach(methodId ->
-            methodIds.stream()
-                     .filter(anotherMethodId -> !methodId.equals(anotherMethodId))
-                     .forEach(anotherMethodId -> {
-                         if (RANDOM.nextBoolean()) {
-                             drawLater.add(
-                                 methodId + " -[hidden]" + randomRepeat(0, 2, "-") + "> " + anotherMethodId
-                                     + '\n'
-                             );
-                         }
-                     })
-        );
-        return result;
     }
 
     /**
