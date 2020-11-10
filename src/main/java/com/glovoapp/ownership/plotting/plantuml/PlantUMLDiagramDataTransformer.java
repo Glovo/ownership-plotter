@@ -56,12 +56,21 @@ public final class PlantUMLDiagramDataTransformer implements DiagramDataTransfor
     @Override
     public final SourceStringReader transformToDiagramData(final Object ownerPerspective,
                                                            final Collection<ClassOwnership> domainOwnership) {
+        final String desiredOwner = ownerPerspective == null ? null : ownerPerspective.toString();
         final IdContainer idContainer = new IdContainer();
         final StringBuilder diagram = new StringBuilder("@startuml\n").append(DIAGRAM_CONFIGURATION);
         final List<String> drawLater = new ArrayList<>();
 
         diagram.append("\n/' domain definitions '/\n");
         domainOwnership.stream()
+                       .filter(ownership ->
+                           desiredOwner == null
+                               || desiredOwner.equals(ownership.getClassOwner())
+                               || ownership.getMethodOwners()
+                                           .values()
+                                           .stream()
+                                           .anyMatch(desiredOwner::equals)
+                       )
                        .flatMap(ownership -> Stream.concat(
                            Stream.of(ownership.getClassOwner())
                                  .filter(Objects::nonNull),
@@ -97,6 +106,13 @@ public final class PlantUMLDiagramDataTransformer implements DiagramDataTransfor
                        .filter(ownership -> ownership.getClassOwner() == null)
                        .filter(ownership -> !ownership.getMethodOwners()
                                                       .isEmpty())
+                       .filter(ownership ->
+                           desiredOwner == null
+                               || ownership.getMethodOwners()
+                                           .values()
+                                           .stream()
+                                           .anyMatch(desiredOwner::equals)
+                       )
                        .map(ownership -> getClassesDefinitions(domainOwnership, idContainer, null, drawLater))
                        .forEach(diagram::append);
 
@@ -106,19 +122,21 @@ public final class PlantUMLDiagramDataTransformer implements DiagramDataTransfor
                                                       .isEmpty())
                        .forEach(ownership -> {
                            final String classId = idContainer.getId(ownership.getTheClass())
-                                                             .orElseThrow(() -> new NullPointerException(
-                                                                 "failed to find id of class "
-                                                                     + ownership.getTheClass()
-                                                             ));
+                                                             .orElse(null);
+                           if (classId == null) {
+                               log.info("ignoring " + ownership.getTheClass());
+                               return;
+                           }
                            ownership.getDependencyOwnershipsStream()
                                     .map(Entry::getValue)
                                     .forEach(dependencyOwnership -> {
                                         final String dependencyClassId
                                             = idContainer.getId(dependencyOwnership.getTheClass())
-                                                         .orElseThrow(() -> new NullPointerException(
-                                                             "failed to find id of dependency class "
-                                                                 + dependencyOwnership.getTheClass()
-                                                         ));
+                                                         .orElse(null);
+                                        if (dependencyClassId == null) {
+                                            log.info("ignoring " + dependencyOwnership.getTheClass());
+                                            return;
+                                        }
 
                                         diagram.append(classId)
                                                .append(" =[#E74C3C,bold]=")
@@ -140,15 +158,17 @@ public final class PlantUMLDiagramDataTransformer implements DiagramDataTransfor
                      )
                      .forEach(methodOwner -> {
                          final String methodClassId = idContainer.getId(ownership.getTheClass())
-                                                                 .orElseThrow(() -> new NullPointerException(
-                                                                     "failed to find id of method class "
-                                                                         + ownership.getTheClass()
-                                                                 ));
+                                                                 .orElse(null);
+                         if (methodClassId == null) {
+                             log.info("ignoring " + ownership.getTheClass());
+                             return;
+                         }
                          final String ownerId = idContainer.getId(methodOwner.getValue())
-                                                           .orElseThrow(() -> new NullPointerException(
-                                                               "failed to find id of method owner "
-                                                                   + methodOwner.getValue()
-                                                           ));
+                                                           .orElse(null);
+                         if (ownerId == null) {
+                             log.info("ignoring " + methodOwner.getValue());
+                             return;
+                         }
                          diagram.append(methodClassId)
                                 .append(" -[#DC7633,dashed]-")
                                 .append(randomRepeat(1, 5, "-"))
