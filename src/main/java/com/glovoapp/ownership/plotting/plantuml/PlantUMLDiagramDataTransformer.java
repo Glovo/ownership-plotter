@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -18,6 +19,8 @@ import java.util.Random;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
+import lombok.EqualsAndHashCode;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.java.Log;
 import net.sourceforge.plantuml.SourceStringReader;
 
@@ -189,36 +192,45 @@ public final class PlantUMLDiagramDataTransformer implements DiagramDataTransfor
                        });
 
         diagram.append("\n/' method ownerships '/\n");
-        domainOwnership.forEach(ownership ->
-            ownership.getMethodOwners()
-                     .entrySet()
-                     .stream()
-                     .filter(methodOwner ->
-                         !methodOwner.getValue()
-                                     .equals(ownership.getClassOwner())
-                     )
-                     .forEach(methodOwner -> {
-                         final String methodClassId = idContainer.getId(ownership.getTheClass())
-                                                                 .orElse(null);
-                         if (methodClassId == null) {
-                             log.info("ignoring " + ownership.getTheClass());
-                             return;
-                         }
-                         final String ownerId = idContainer.getId(methodOwner.getValue())
-                                                           .orElse(null);
-                         if (ownerId == null) {
-                             log.info("ignoring " + methodOwner.getValue());
-                             return;
-                         }
-                         diagram.append(methodClassId)
-                                .append(" -[")
-                                .append(randomArrowColor())
-                                .append(",dashed]-")
-                                .append(randomRepeat(1, 5, "-"))
-                                .append("> ")
-                                .append(ownerId)
-                                .append('\n');
-                     })
+        domainOwnership.forEach(ownership -> {
+                // This will limit arrows for methods to one per class / owner
+                final HashSet<Pair<String, String>> methodClassIdToOwnerIdPairs = new HashSet<>();
+                ownership.getMethodOwners()
+                         .entrySet()
+                         .stream()
+                         .filter(methodOwner ->
+                             !methodOwner.getValue()
+                                         .equals(ownership.getClassOwner())
+                         )
+                         .forEach(methodOwner -> {
+                             final String methodClassId = idContainer.getId(ownership.getTheClass())
+                                                                     .orElse(null);
+                             if (methodClassId == null) {
+                                 log.info("ignoring " + ownership.getTheClass());
+                                 return;
+                             }
+                             final String ownerId = idContainer.getId(methodOwner.getValue())
+                                                               .orElse(null);
+                             if (ownerId == null) {
+                                 log.info("ignoring " + methodOwner.getValue());
+                                 return;
+                             }
+                             final Pair<String, String> pair = new Pair<>(methodClassId, ownerId);
+                             if (methodClassIdToOwnerIdPairs.contains(pair)) {
+                                 return;
+                             } else {
+                                 methodClassIdToOwnerIdPairs.add(pair);
+                             }
+                             diagram.append(methodClassId)
+                                    .append(" -[")
+                                    .append(randomArrowColor())
+                                    .append(",dashed]-")
+                                    .append(randomRepeat(1, 5, "-"))
+                                    .append("> ")
+                                    .append(ownerId)
+                                    .append('\n');
+                         });
+            }
         );
 
         diagram.append("\n/' drawLater lines '/\n");
@@ -248,6 +260,26 @@ public final class PlantUMLDiagramDataTransformer implements DiagramDataTransfor
                        .filter(it -> Objects.equals(owner, it.getClassOwner()))
                        .forEach(ownedClass -> {
                            if (
+                               // don't draw classes that have no relationships with other classes
+                               // or are not dependencies of other classes
+                               desiredOwner != null
+                                   && desiredOwner.equals(ownedClass.getClassOwner())
+                                   && ownedClass.getMethodOwners()
+                                                .isEmpty()
+                                   && ownedClass.getDependencyOwnershipsStream()
+                                                .map(Entry::getValue)
+                                                .map(ClassOwnership::getClassOwner)
+                                                .allMatch(ownedClass.getClassOwner()::equals)
+                                   && domainOwnership.stream()
+                                                     .flatMap(ClassOwnership::getDependencyOwnershipsStream)
+                                                     .map(Entry::getValue)
+                                                     .noneMatch(it -> ownedClass.getTheClass()
+                                                                                .equals(it.getTheClass()))
+                           ) {
+                               return;
+                           }
+
+                           if (
                                desiredOwner == null
                                    || desiredOwner.equals(ownedClass.getClassOwner())
                                    || ownedClass.getMethodOwners()
@@ -269,18 +301,26 @@ public final class PlantUMLDiagramDataTransformer implements DiagramDataTransfor
                            }
                        });
         classIds.forEach(classId ->
-            Stream.concat(classIds.stream(), classIds.stream())
-                  .filter(anotherClassId -> !classId.equals(anotherClassId))
-                  .forEach(anotherClassId -> {
-                      if (RANDOM.nextBoolean()) {
-                          drawLater.add(
-                              classId + " -[hidden]" + randomRepeat(0, 3, "-") + "> " + anotherClassId
-                                  + '\n'
-                          );
-                      }
-                  })
+            classIds.stream()
+                    .filter(anotherClassId -> !classId.equals(anotherClassId))
+                    .forEach(anotherClassId -> {
+                        if (RANDOM.nextBoolean()) {
+                            drawLater.add(
+                                classId + " -[hidden]" + randomRepeat(0, 3, "-") + "> " + anotherClassId
+                                    + '\n'
+                            );
+                        }
+                    })
         );
         return diagram.toString();
+    }
+
+    @EqualsAndHashCode
+    @RequiredArgsConstructor
+    private static final class Pair<L, R> {
+
+        private final L left;
+        private final R right;
     }
 
     /**
