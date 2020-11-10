@@ -67,9 +67,7 @@ public final class PlantUMLDiagramDataTransformer implements DiagramDataTransfor
                            desiredOwner == null
                                || desiredOwner.equals(ownership.getClassOwner())
                                || ownership.getMethodOwners()
-                                           .values()
-                                           .stream()
-                                           .anyMatch(desiredOwner::equals)
+                                           .containsValue(desiredOwner)
                        )
                        .flatMap(ownership -> Stream.concat(
                            Stream.of(ownership.getClassOwner())
@@ -82,7 +80,7 @@ public final class PlantUMLDiagramDataTransformer implements DiagramDataTransfor
                        .forEach(owner -> {
                            final String ownerId = idContainer.putAndGetId(owner);
                            final String classesDefinitions = getClassesDefinitions(
-                               domainOwnership, idContainer, owner, drawLater
+                               desiredOwner, domainOwnership, idContainer, owner, drawLater
                            );
                            diagram.append("package ")
                                   .append(owner)
@@ -113,7 +111,9 @@ public final class PlantUMLDiagramDataTransformer implements DiagramDataTransfor
                                            .stream()
                                            .anyMatch(desiredOwner::equals)
                        )
-                       .map(ownership -> getClassesDefinitions(domainOwnership, idContainer, null, drawLater))
+                       .map(ownership ->
+                           getClassesDefinitions(desiredOwner, domainOwnership, idContainer, null, drawLater)
+                       )
                        .forEach(diagram::append);
 
         diagram.append("\n/' class ownerships '/\n");
@@ -194,7 +194,8 @@ public final class PlantUMLDiagramDataTransformer implements DiagramDataTransfor
                         .collect(Collectors.joining());
     }
 
-    private String getClassesDefinitions(final Collection<ClassOwnership> domainOwnership,
+    private String getClassesDefinitions(final String desiredOwner,
+                                         final Collection<ClassOwnership> domainOwnership,
                                          final IdContainer idContainer,
                                          final String owner,
                                          final List<String> drawLater) {
@@ -203,19 +204,26 @@ public final class PlantUMLDiagramDataTransformer implements DiagramDataTransfor
         domainOwnership.stream()
                        .filter(it -> Objects.equals(owner, it.getClassOwner()))
                        .forEach(ownedClass -> {
-                           final String classId = idContainer.putAndGetId(ownedClass.getTheClass());
-                           classIds.add(classId);
-                           diagram.append("  folder ")
-                                  .append(ownedClass.getTheClass()
-                                                    .getSimpleName())
-                                  .append(" as ")
-                                  .append(classId);
+                           if (
+                               desiredOwner == null
+                                   || desiredOwner.equals(ownedClass.getClassOwner())
+                                   || ownedClass.getMethodOwners()
+                                                .containsValue(desiredOwner)
+                           ) {
+                               final String classId = idContainer.putAndGetId(ownedClass.getTheClass());
+                               classIds.add(classId);
+                               diagram.append("  folder ")
+                                      .append(ownedClass.getTheClass()
+                                                        .getSimpleName())
+                                      .append(" as ")
+                                      .append(classId);
 
-                           diagram.append(" {\n")
-                                  .append("    agent invisible_")
-                                  .append(IdContainer.generateRandomId())
-                                  .append('\n')
-                                  .append("  }\n");
+                               diagram.append(" {\n")
+                                      .append("    agent invisible_")
+                                      .append(IdContainer.generateRandomId())
+                                      .append('\n')
+                                      .append("  }\n");
+                           }
                        });
         classIds.forEach(classId ->
             classIds.stream()
