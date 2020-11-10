@@ -223,7 +223,7 @@ public final class PlantUMLDiagramDataTransformer implements DiagramDataTransfor
                     .forEach(anotherClassId -> {
                         if (RANDOM.nextBoolean()) {
                             drawLater.add(
-                                classId + " -[hidden]" + (RANDOM.nextBoolean() ? "-" : "") + "> " + anotherClassId
+                                classId + " -[hidden]" + randomRepeat(0, 3, "-") + "> " + anotherClassId
                                     + '\n'
                             );
                         }
