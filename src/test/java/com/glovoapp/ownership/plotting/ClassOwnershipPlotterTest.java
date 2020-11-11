@@ -25,21 +25,6 @@ import org.reflections.scanners.SubTypesScanner;
 
 class ClassOwnershipPlotterTest {
 
-    private static ClassOwnershipPlotter ownershipPlotterWithNoFilters() {
-        return ownershipPlotterWithFilters(emptyList());
-    }
-
-    private static ClassOwnershipPlotter ownershipPlotterWithFilters(final Collection<OwnershipFilter> filters) {
-        return new ClassOwnershipPlotter(
-            new CachedClassOwnershipExtractor(
-                new AnnotationBasedClassOwnershipExtractor(
-                    OwnershipAnnotationDefinition.define(ExampleOwnershipAnnotation.class)
-                )
-            ),
-            pipelineForFile(FileFormat.SVG, defaultDiagramConfiguration(), filters)
-        );
-    }
-
     @BeforeAll
     static void loadAllGlovoClasses() {
         // Load all classes in "com.glovoapp" package for analysis.
@@ -62,6 +47,21 @@ class ClassOwnershipPlotterTest {
                 hasDependenciesOwnedBy(desiredOwner)
             )
         )).writeDiagramOfClassesLoadedInContextToFile("/tmp/test-team-a.svg");
+    }
+
+    private static ClassOwnershipPlotter ownershipPlotterWithNoFilters() {
+        return ownershipPlotterWithFilters(emptyList());
+    }
+
+    private static ClassOwnershipPlotter ownershipPlotterWithFilters(final Collection<OwnershipFilter> filters) {
+        return new ClassOwnershipPlotter(
+            new CachedClassOwnershipExtractor(
+                new AnnotationBasedClassOwnershipExtractor(
+                    OwnershipAnnotationDefinition.define(ExampleOwnershipAnnotation.class)
+                )
+            ),
+            pipelineForFile(FileFormat.SVG, defaultDiagramConfiguration(), filters)
+        );
     }
 
 }
