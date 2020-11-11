@@ -53,44 +53,44 @@ public final class PlantUMLDiagramDataTransformer implements DiagramDataTransfor
               .map(Renderable::render)
               .forEach(diagram::append);
 
-        getAllDependencyRelationships(components).map(Relationship::render)
-                                                 .forEach(diagram::append);
-
-        // find all methods in components owned by owners
-        components.stream()
-                  .flatMap(component ->
-                      component.getClassOwnership()
-                               .getMethodOwners()
-                               .values()
-                               .stream()
-                               .distinct()
-                               .map(uniqueOwnerName ->
-                                   owners.stream()
-                                         .filter(owner -> uniqueOwnerName.equals(owner.getName()))
-                                         .findAny()
-                               )
-                               .filter(Optional::isPresent)
-                               .map(Optional::get)
-                               .map(owner ->
-                                   new Relationship(
-                                       component,
-                                       owner,
-                                       Arrow.builder()
-                                            .lineStyle(LineStyle.DOTTED)
-                                            .length(1 + RANDOM.nextInt(3))
-                                            .randomColor()
-                                            .build()
-                                   )
-                               )
-                  )
-                  .map(Relationship::render)
-                  .forEach(diagram::append);
+        Stream.concat(getAllDependencyRelationships(components), getAllMethodRelationships(components, owners))
+              .map(Relationship::render)
+              .forEach(diagram::append);
 
         diagram.append("@enduml\n");
         final String resultDiagram = diagram.toString();
 
         log.info("generated diagram:\n{}", resultDiagram);
         return new SourceStringReader(resultDiagram);
+    }
+
+    private Stream<Relationship> getAllMethodRelationships(final Set<Component> components, final Set<Owner> owners) {
+        return components.stream()
+                         .flatMap(component ->
+                             component.getClassOwnership()
+                                      .getMethodOwners()
+                                      .values()
+                                      .stream()
+                                      .distinct()
+                                      .map(uniqueOwnerName ->
+                                          owners.stream()
+                                                .filter(owner -> uniqueOwnerName.equals(owner.getName()))
+                                                .findAny()
+                                      )
+                                      .filter(Optional::isPresent)
+                                      .map(Optional::get)
+                                      .map(owner ->
+                                          new Relationship(
+                                              component,
+                                              owner,
+                                              Arrow.builder()
+                                                   .lineStyle(LineStyle.DOTTED)
+                                                   .length(1 + RANDOM.nextInt(3))
+                                                   .randomColor()
+                                                   .build()
+                                          )
+                                      )
+                         );
     }
 
     private Stream<Relationship> getAllDependencyRelationships(Set<Component> components) {
