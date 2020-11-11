@@ -39,6 +39,17 @@ public final class PlantUMLDiagramDataTransformer implements DiagramDataTransfor
         final Set<Component> componentsWithNoOwners = getComponentsWithNoOwners(components);
 
         Stream.concat(owners.stream(), componentsWithNoOwners.stream())
+              /* TODO: this casting is only to fix BootstrapMethodError, remove casting in the future.
+               *       This line is throwing:
+               *           Invalid receiver type
+               *             interface com.glovoapp.ownership.plotting.plantuml.Identifiable;
+               *           not a subtype of implementation type
+               *             interface com.glovoapp.ownership.plotting.plantuml.Renderable
+               *       Which is obviously wrong and Java should understand that, but it doesnt.
+               *       Therefore we are explicitly casting so it can stop complaining.
+               *       See full stack trace in commit message.
+               */
+              .map(it -> (Renderable) it)
               .map(Renderable::render)
               .forEach(diagram::append);
 
