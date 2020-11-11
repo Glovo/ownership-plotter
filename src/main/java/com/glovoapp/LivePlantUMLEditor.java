@@ -38,20 +38,21 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.undo.UndoManager;
 import lombok.SneakyThrows;
-import lombok.extern.java.Log;
+import lombok.extern.slf4j.Slf4j;
 import net.sourceforge.plantuml.FileFormat;
 import net.sourceforge.plantuml.FileFormatOption;
 import net.sourceforge.plantuml.SourceStringReader;
 
-@Log
+@Slf4j
 public final class LivePlantUMLEditor extends JFrame {
+
+    private final static String TEMPORARY_DIRECTORY = System.getProperty("java.io.tmpdir");
 
     static {
         System.setProperty("awt.useSystemAAFontSettings", "on");
         System.setProperty("swing.aatext", "true");
     }
 
-    private final static String TEMPORARY_DIRECTORY = System.getProperty("java.io.tmpdir");
     private final AtomicReference<String> saveFileNameReference = new AtomicReference<>(
         TEMPORARY_DIRECTORY + "/" + LivePlantUMLEditor.class.getSimpleName() + ".save"
     );
@@ -59,10 +60,6 @@ public final class LivePlantUMLEditor extends JFrame {
     private final ExecutorService diagramRenderThreadPool = Executors.newFixedThreadPool(10);
 
     private final ImagePanel imagePanel = new ImagePanel();
-
-    public static void main(final String... args) {
-        invokeLater(LivePlantUMLEditor::new);
-    }
 
     private LivePlantUMLEditor() {
         super(LivePlantUMLEditor.class.getSimpleName());
@@ -135,6 +132,31 @@ public final class LivePlantUMLEditor extends JFrame {
         setVisible(true);
     }
 
+    public static void main(final String... args) {
+        invokeLater(LivePlantUMLEditor::new);
+    }
+
+    @SneakyThrows
+    private static void overwriteFile(final String fileName, final String data) {
+        final FileWriter myWriter = new FileWriter(fileName);
+        myWriter.write(data);
+        myWriter.close();
+    }
+
+    @SneakyThrows
+    private static Optional<String> readFile(final String fileName) {
+        try {
+            return Optional.of(
+                String.join(
+                    "\n",
+                    Files.readAllLines(Paths.get(fileName))
+                )
+            );
+        } catch (final NoSuchFileException exception) {
+            return Optional.empty();
+        }
+    }
+
     private void addScrollable(final Component component) {
         final JScrollPane scrollPane = new JScrollPane(component);
         scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
@@ -157,7 +179,7 @@ public final class LivePlantUMLEditor extends JFrame {
                         out,
                         new FileFormatOption(FileFormat.PNG)
                     );
-                    log.info("diagram image generated " + generationDescription);
+                    log.info("diagram image generated {}", generationDescription);
                     out.close();
                     saveFileNameReference.updateAndGet(saveFileName -> {
                         overwriteFile(saveFileName, diagramText);
@@ -205,27 +227,6 @@ public final class LivePlantUMLEditor extends JFrame {
                     });
         }
 
-    }
-
-    @SneakyThrows
-    private static void overwriteFile(final String fileName, final String data) {
-        final FileWriter myWriter = new FileWriter(fileName);
-        myWriter.write(data);
-        myWriter.close();
-    }
-
-    @SneakyThrows
-    private static Optional<String> readFile(final String fileName) {
-        try {
-            return Optional.of(
-                String.join(
-                    "\n",
-                    Files.readAllLines(Paths.get(fileName))
-                )
-            );
-        } catch (final NoSuchFileException exception) {
-            return Optional.empty();
-        }
     }
 
 }

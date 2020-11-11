@@ -9,9 +9,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.java.Log;
+import lombok.extern.slf4j.Slf4j;
 
-@Log
+@Slf4j
 @RequiredArgsConstructor
 public final class AnnotationBasedClassOwnershipExtractor implements ClassOwnershipExtractor {
 
@@ -47,7 +47,7 @@ public final class AnnotationBasedClassOwnershipExtractor implements ClassOwners
                 return Optional.empty();
             }
         } catch (final NoClassDefFoundError error) {
-            log.info("failed to fetch ownership of " + aClass);
+            log.info("failed to fetch ownership of {}", aClass);
             return Optional.empty();
         }
     }

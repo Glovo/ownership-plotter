@@ -14,14 +14,6 @@ import org.reflections.scanners.SubTypesScanner;
 
 class ClassOwnershipPlotterTest {
 
-    @BeforeAll
-    static void loadAllGlovoClasses() {
-        // Load all classes in "com.glovoapp" package for analysis.
-        // We need to do this because class loaders are lazy and wouldn't load classes unless explicitly asked for them.
-        Reflections reflections = new Reflections("com.glovoapp", new SubTypesScanner(false));
-        reflections.getSubTypesOf(Object.class);
-    }
-
     private final ClassOwnershipPlotter classOwnershipPlotter = new ClassOwnershipPlotter(
         new CachedClassOwnershipExtractor(
             new AnnotationBasedClassOwnershipExtractor(
@@ -30,6 +22,14 @@ class ClassOwnershipPlotterTest {
         ),
         pipelineForSVG()
     );
+
+    @BeforeAll
+    static void loadAllGlovoClasses() {
+        // Load all classes in "com.glovoapp" package for analysis.
+        // We need to do this because class loaders are lazy and wouldn't load classes unless explicitly asked for them.
+        Reflections reflections = new Reflections("com.glovoapp", new SubTypesScanner(false));
+        reflections.getSubTypesOf(Object.class);
+    }
 
     @Test
     void writeDiagramOfClassesLoadedInContextToFile_shouldWriteDiagram() {
