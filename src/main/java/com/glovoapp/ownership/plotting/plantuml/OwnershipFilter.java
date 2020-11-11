@@ -19,40 +19,43 @@ public interface OwnershipFilter extends Predicate<OwnershipContext> {
                                                 .getClassOwner(), desiredOwner);
     }
 
+    static OwnershipFilter isNotOwnedBy(final String desiredOwner) {
+        return isOwnedBy(desiredOwner).negate();
+    }
+
     static OwnershipFilter hasDependenciesOwnedBy(final String desiredOwner) {
-        return context -> context.getClassOwnership()
-                                 .getDependencyOwnershipsStream()
-                                 .map(Entry::getValue)
-                                 .anyMatch(dependencyOwnership ->
-                                     Objects.equals(dependencyOwnership.getClassOwner(), desiredOwner)
-                                 );
+        return hasDependenciesThat(isOwnedBy(desiredOwner));
     }
 
     static OwnershipFilter hasDependenciesWithOwnerOtherThan(final String undesiredOwner) {
+        return hasDependenciesThat(isNotOwnedBy(undesiredOwner));
+    }
+
+    static OwnershipFilter hasDependenciesThat(final OwnershipFilter dependencyFilter) {
         return context -> context.getClassOwnership()
                                  .getDependencyOwnershipsStream()
                                  .map(Entry::getValue)
                                  .anyMatch(dependencyOwnership ->
-                                     dependencyOwnership.getClassOwner() != null
-                                         && !Objects.equals(dependencyOwnership.getClassOwner(), undesiredOwner)
+                                     dependencyFilter.test(
+                                         new OwnershipContext(dependencyOwnership, context.domainOwnership)
+                                     )
                                  );
     }
 
     static OwnershipFilter hasMethodsOwnedBy(final String desiredOwner) {
-//        return hasMethodsWithOwnerThat(methodOwner -> Objects.equals(methodOwner, desiredOwner));
-        return context -> context.getClassOwnership()
-                                 .getMethodOwners()
-                                 .values()
-                                 .stream()
-                                 .anyMatch(methodOwners -> Objects.equals(methodOwners, desiredOwner));
+        return hasMethodsWithOwnerThat(methodOwner -> Objects.equals(methodOwner, desiredOwner));
     }
 
     static OwnershipFilter hasMethodsWithOwnerOtherThan(final String undesiredOwner) {
+        return hasMethodsWithOwnerThat(methodOwner -> !Objects.equals(methodOwner, undesiredOwner));
+    }
+
+    static OwnershipFilter hasMethodsWithOwnerThat(final Predicate<String> ownerPredicate) {
         return context -> context.getClassOwnership()
                                  .getMethodOwners()
                                  .values()
                                  .stream()
-                                 .anyMatch(methodOwners -> !Objects.equals(methodOwners, undesiredOwner));
+                                 .anyMatch(ownerPredicate);
     }
 
     default OwnershipFilter negate() {
