@@ -17,6 +17,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 // We assume that fields of ClassOwnership are a pre-calculated cache and are immutable.
 // Therefore two ClassOwnerships that wrap the same class are equal.
+// Definitions originating from different ClassOwnershipExtractor instances should not be mixed.
+// TODO: throw when comparing definitions originating from different ClassOwnershipExtractors
 @EqualsAndHashCode(of = {"theClass"})
 public final class ClassOwnership {
 
