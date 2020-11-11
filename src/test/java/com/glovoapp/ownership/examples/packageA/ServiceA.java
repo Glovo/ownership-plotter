@@ -5,6 +5,7 @@ import static com.glovoapp.ownership.examples.ExampleOwner.TEAM_B;
 
 import com.glovoapp.ownership.examples.ExampleOwnershipAnnotation;
 import com.glovoapp.ownership.examples.packageB.FacadeB;
+import com.glovoapp.ownership.examples.packageC.SomeClassC;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
@@ -13,6 +14,7 @@ final class ServiceA {
 
     private final RepositoryA repository;
     private final FacadeB facadeB;
+    private final SomeClassC someClassC;
 
     @ExampleOwnershipAnnotation(owner = TEAM_B)
     public final void methodInAOwnedByB() {

@@ -94,6 +94,16 @@ public final class PlantUMLDiagramDataTransformer implements DiagramDataTransfor
                                || desiredOwner.equals(ownership.getClassOwner())
                                || ownership.getMethodOwners()
                                            .containsValue(desiredOwner)
+                               || ownership.getDependencyOwnershipsStream()
+                                           .map(Entry::getValue)
+                                           .map(ClassOwnership::getClassOwner)
+                                           .anyMatch(desiredOwner::equals)
+                               || domainOwnership.stream()
+                                                 .filter(it -> desiredOwner.equals(it.getClassOwner()))
+                                                 .flatMap(ClassOwnership::getDependencyOwnershipsStream)
+                                                 .map(Entry::getValue)
+                                                 .map(ClassOwnership::getClassOwner)
+                                                 .anyMatch(it -> Objects.equals(it, ownership.getClassOwner()))
                        )
                        .flatMap(ownership -> Stream.concat(
                            Stream.of(ownership.getClassOwner())
@@ -120,6 +130,7 @@ public final class PlantUMLDiagramDataTransformer implements DiagramDataTransfor
                                                      .noneMatch(owner::equals)
 
                            ) {
+                               log.info("ignoring because no relation to desired owner " + owner);
                                return;
                            }
 
@@ -166,7 +177,7 @@ public final class PlantUMLDiagramDataTransformer implements DiagramDataTransfor
                            final String classId = idContainer.getId(ownership.getTheClass())
                                                              .orElse(null);
                            if (classId == null) {
-                               log.info("ignoring " + ownership.getTheClass());
+                               log.info("ignoring because of missing ID " + ownership.getTheClass());
                                return;
                            }
                            ownership.getDependencyOwnershipsStream()
@@ -276,6 +287,7 @@ public final class PlantUMLDiagramDataTransformer implements DiagramDataTransfor
                                                      .noneMatch(it -> ownedClass.getTheClass()
                                                                                 .equals(it.getTheClass()))
                            ) {
+                               log.info("ignoring " + ownedClass.getTheClass() + " because it is irrelevant");
                                return;
                            }
 
