@@ -157,9 +157,20 @@ public final class PlantUMLDiagramDataTransformer implements DiagramDataTransfor
             : ownershipFilters.stream()
                               .flatMap(filter ->
                                   domainOwnership.stream()
-                                                 .filter(ownership ->
-                                                     filter.test(new OwnershipContext(ownership, domainOwnership))
-                                                 ))
+                                                 .filter(ownership -> {
+                                                     final boolean result = filter.test(
+                                                         new OwnershipContext(ownership, domainOwnership)
+                                                     );
+                                                     if (!result) {
+                                                         log.info(
+                                                             "class {} does not match filter: {}",
+                                                             ownership.getTheClass()
+                                                                      .getSimpleName(),
+                                                             filter
+                                                         );
+                                                     }
+                                                     return result;
+                                                 }))
                               .collect(toSet());
     }
 

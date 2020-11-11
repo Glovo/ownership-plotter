@@ -14,64 +14,96 @@ import lombok.RequiredArgsConstructor;
 
 public interface OwnershipFilter extends Predicate<OwnershipContext> {
 
-    static OwnershipFilter isOwnedBy(final String desiredOwner) {
-        return context -> Objects.equals(context.getClassOwnership()
-                                                .getClassOwner(), desiredOwner);
-    }
-
     static OwnershipFilter isNotOwnedBy(final String desiredOwner) {
         return isOwnedBy(desiredOwner).negate();
     }
 
+    static OwnershipFilter isOwnedBy(final String desiredOwner) {
+        return named(
+            context -> Objects.equals(context.getClassOwnership()
+                                             .getClassOwner(), desiredOwner),
+            "owned by " + desiredOwner
+        );
+    }
+
     static OwnershipFilter hasDependenciesOwnedBy(final String desiredOwner) {
-        return hasDependenciesThat(isOwnedBy(desiredOwner));
+        return hasDependenciesThat(isOwnedBy(desiredOwner))
+            .named("has dependencies owned by " + desiredOwner);
     }
 
     static OwnershipFilter hasDependenciesWithOwnerOtherThan(final String undesiredOwner) {
-        return hasDependenciesThat(isNotOwnedBy(undesiredOwner));
+        return hasDependenciesThat(isNotOwnedBy(undesiredOwner))
+            .named("has dependencies with owner other than " + undesiredOwner);
     }
 
     static OwnershipFilter hasDependenciesThat(final OwnershipFilter dependencyFilter) {
-        return context -> context.getClassOwnership()
-                                 .getDependencyOwnershipsStream()
-                                 .map(Entry::getValue)
-                                 .anyMatch(dependencyOwnership ->
-                                     dependencyFilter.test(
-                                         new OwnershipContext(dependencyOwnership, context.domainOwnership)
-                                     )
-                                 );
+        return named(
+            context -> context.getClassOwnership()
+                              .getDependencyOwnershipsStream()
+                              .map(Entry::getValue)
+                              .anyMatch(dependencyOwnership ->
+                                  dependencyFilter.test(
+                                      new OwnershipContext(dependencyOwnership, context.domainOwnership)
+                                  )
+                              ),
+            "has dependencies that (" + dependencyFilter + ')'
+        );
     }
 
     static OwnershipFilter hasMethodsOwnedBy(final String desiredOwner) {
-        return hasMethodsWithOwnerThat(methodOwner -> Objects.equals(methodOwner, desiredOwner));
+        return hasMethodsWithOwnerThat(methodOwner -> Objects.equals(methodOwner, desiredOwner))
+            .named("has methods owned by " + desiredOwner);
     }
 
     static OwnershipFilter hasMethodsWithOwnerOtherThan(final String undesiredOwner) {
-        return hasMethodsWithOwnerThat(methodOwner -> !Objects.equals(methodOwner, undesiredOwner));
+        return hasMethodsWithOwnerThat(methodOwner -> !Objects.equals(methodOwner, undesiredOwner))
+            .named("has methods with owner other than " + undesiredOwner);
     }
 
     static OwnershipFilter hasMethodsWithOwnerThat(final Predicate<String> ownerPredicate) {
-        return context -> context.getClassOwnership()
-                                 .getMethodOwners()
-                                 .values()
-                                 .stream()
-                                 .anyMatch(ownerPredicate);
+        return named(
+            context -> context.getClassOwnership()
+                              .getMethodOwners()
+                              .values()
+                              .stream()
+                              .anyMatch(ownerPredicate),
+            "has methods with owner matching " + ownerPredicate
+        );
     }
 
     default OwnershipFilter negate() {
-        return context -> !this.test(context);
+        return named(context -> !this.test(context), "not " + this);
     }
 
     default OwnershipFilter and(final OwnershipFilter another) {
-        return composeWith(another, Boolean::logicalAnd);
+        return composeWith(another, Boolean::logicalAnd).named("(" + this + " and " + another + ')');
     }
 
     default OwnershipFilter or(final OwnershipFilter another) {
-        return composeWith(another, Boolean::logicalOr);
+        return composeWith(another, Boolean::logicalOr).named("(" + this + " or " + another + ')');
     }
 
     default OwnershipFilter composeWith(final OwnershipFilter another, final BinaryOperator<Boolean> operator) {
         return context -> operator.apply(this.test(context), another.test(context));
+    }
+
+    default OwnershipFilter named(final String filterName) {
+        final OwnershipFilter self = this;
+        return new OwnershipFilter() {
+            @Override
+            public final boolean test(OwnershipContext ownershipContext) {
+                return self.test(ownershipContext);
+            }
+
+            @Override
+            public final String toString() {
+                return filterName;
+            }
+        };
+    }
+
+    static OwnershipFilter named(final OwnershipFilter filter, final String filterName) {
+        return filter.named(filterName);
     }
 
     @Getter
