@@ -21,34 +21,13 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.java.Log;
+import lombok.extern.slf4j.Slf4j;
 import net.sourceforge.plantuml.SourceStringReader;
 
-@Log
+@Slf4j
 public final class PlantUMLDiagramDataTransformer implements DiagramDataTransformer<SourceStringReader> {
 
     private static final Random RANDOM = new Random();
-
-    private static String randomArrowColor() {
-        final List<Integer> cmyList = asList(77, 0, RANDOM.nextInt(77));
-        Collections.shuffle(cmyList);
-        return cmykToRgb(cmyList.get(0), cmyList.get(1), cmyList.get(2), 14);
-    }
-
-    private static String cmykToRgb(final int c, final int m, final int y, final int k) {
-        int r = (int) (255 * (1.0 - c / 100.0) * (1.0 - k / 100.0));
-        int g = (int) (255 * (1.0 - m / 100.0) * (1.0 - k / 100.0));
-        int b = (int) (255 * (1.0 - y / 100.0) * (1.0 - k / 100.0));
-
-        return "#" + hexPart(r) + hexPart(g) + hexPart(b);
-    }
-
-    private static String hexPart(final int value) {
-        final String asHex = Integer.toHexString(value)
-                                    .toUpperCase();
-        return asHex.length() != 2 ? '0' + asHex : asHex;
-    }
-
     private static final String DIAGRAM_CONFIGURATION
         // Owners (teams) are represented by packages
         = "\n/' colors configuration '/\n"
@@ -78,6 +57,33 @@ public final class PlantUMLDiagramDataTransformer implements DiagramDataTransfor
         + "  backgroundColor white\n"
         + "  borderColor black\n"
         + "}\n";
+
+    private static String randomArrowColor() {
+        final List<Integer> cmyList = asList(77, 0, RANDOM.nextInt(77));
+        Collections.shuffle(cmyList);
+        return cmykToRgb(cmyList.get(0), cmyList.get(1), cmyList.get(2), 14);
+    }
+
+    private static String cmykToRgb(final int c, final int m, final int y, final int k) {
+        int r = (int) (255 * (1.0 - c / 100.0) * (1.0 - k / 100.0));
+        int g = (int) (255 * (1.0 - m / 100.0) * (1.0 - k / 100.0));
+        int b = (int) (255 * (1.0 - y / 100.0) * (1.0 - k / 100.0));
+
+        return "#" + hexPart(r) + hexPart(g) + hexPart(b);
+    }
+
+    private static String hexPart(final int value) {
+        final String asHex = Integer.toHexString(value)
+                                    .toUpperCase();
+        return asHex.length() != 2 ? '0' + asHex : asHex;
+    }
+
+    private static String randomRepeat(final int minCount, final int maxCount, final String toRepeat) {
+        final int repeatTimes = RANDOM.nextInt(maxCount - minCount) + minCount;
+        return IntStream.range(0, repeatTimes)
+                        .mapToObj(it -> toRepeat)
+                        .collect(Collectors.joining());
+    }
 
     @Override
     public final SourceStringReader transformToDiagramData(final Object ownerPerspective,
@@ -130,7 +136,7 @@ public final class PlantUMLDiagramDataTransformer implements DiagramDataTransfor
                                                      .noneMatch(owner::equals)
 
                            ) {
-                               log.info("ignoring because no relation to desired owner " + owner);
+                               log.info("ignoring because no relation to desired owner {}", owner);
                                return;
                            }
 
@@ -177,7 +183,7 @@ public final class PlantUMLDiagramDataTransformer implements DiagramDataTransfor
                            final String classId = idContainer.getId(ownership.getTheClass())
                                                              .orElse(null);
                            if (classId == null) {
-                               log.info("ignoring because of missing ID " + ownership.getTheClass());
+                               log.info("ignoring because of missing ID {}", ownership.getTheClass());
                                return;
                            }
                            ownership.getDependencyOwnershipsStream()
@@ -187,7 +193,7 @@ public final class PlantUMLDiagramDataTransformer implements DiagramDataTransfor
                                             = idContainer.getId(dependencyOwnership.getTheClass())
                                                          .orElse(null);
                                         if (dependencyClassId == null) {
-                                            log.info("ignoring " + dependencyOwnership.getTheClass());
+                                            log.info("ignoring {}", dependencyOwnership.getTheClass());
                                             return;
                                         }
 
@@ -217,13 +223,13 @@ public final class PlantUMLDiagramDataTransformer implements DiagramDataTransfor
                              final String methodClassId = idContainer.getId(ownership.getTheClass())
                                                                      .orElse(null);
                              if (methodClassId == null) {
-                                 log.info("ignoring " + ownership.getTheClass());
+                                 log.info("ignoring {}", ownership.getTheClass());
                                  return;
                              }
                              final String ownerId = idContainer.getId(methodOwner.getValue())
                                                                .orElse(null);
                              if (ownerId == null) {
-                                 log.info("ignoring " + methodOwner.getValue());
+                                 log.info("ignoring {}", methodOwner.getValue());
                                  return;
                              }
                              final Pair<String, String> pair = new Pair<>(methodClassId, ownerId);
@@ -249,15 +255,8 @@ public final class PlantUMLDiagramDataTransformer implements DiagramDataTransfor
         diagram.append("@enduml\n");
         final String resultDiagram = diagram.toString();
 
-        log.info("generated diagram:\n" + resultDiagram);
+        log.info("generated diagram:\n{}", resultDiagram);
         return new SourceStringReader(resultDiagram);
-    }
-
-    private static String randomRepeat(final int minCount, final int maxCount, final String toRepeat) {
-        final int repeatTimes = RANDOM.nextInt(maxCount - minCount) + minCount;
-        return IntStream.range(0, repeatTimes)
-                        .mapToObj(it -> toRepeat)
-                        .collect(Collectors.joining());
     }
 
     private String getClassesDefinitions(final String desiredOwner,
@@ -287,7 +286,7 @@ public final class PlantUMLDiagramDataTransformer implements DiagramDataTransfor
                                                      .noneMatch(it -> ownedClass.getTheClass()
                                                                                 .equals(it.getTheClass()))
                            ) {
-                               log.info("ignoring " + ownedClass.getTheClass() + " because it is irrelevant");
+                               log.info("ignoring {} because it is irrelevant", ownedClass.getTheClass());
                                return;
                            }
 
@@ -342,6 +341,14 @@ public final class PlantUMLDiagramDataTransformer implements DiagramDataTransfor
 
         private final HashMap<Object, String> objectIds = new HashMap<>();
 
+        /**
+         * @return unique ID compatible with PlantUML naming convention
+         */
+        private static String generateRandomId() {
+            return randomUUID().toString()
+                               .replace("-", "_");
+        }
+
         private String putAndGetId(final Object object) {
             return getId(object).orElseGet(() -> {
                 final String newId = generateRandomId();
@@ -353,14 +360,6 @@ public final class PlantUMLDiagramDataTransformer implements DiagramDataTransfor
         private Optional<String> getId(final Object object) {
             return Optional.of(object)
                            .map(objectIds::get);
-        }
-
-        /**
-         * @return unique ID compatible with PlantUML naming convention
-         */
-        private static String generateRandomId() {
-            return randomUUID().toString()
-                               .replace("-", "_");
         }
 
     }

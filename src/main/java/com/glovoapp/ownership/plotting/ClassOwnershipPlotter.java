@@ -17,14 +17,38 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
-import lombok.extern.java.Log;
+import lombok.extern.slf4j.Slf4j;
 
-@Log
+@Slf4j
 @RequiredArgsConstructor
 public final class ClassOwnershipPlotter {
 
     private final ClassOwnershipExtractor extractor;
     private final DiagramDataPipeline diagramDataPipeline;
+
+    @SneakyThrows
+    private static Set<Class<?>> getLoadedClassesFrom(final ClassLoader classLoader) {
+        log.info("fetching classes from {}", classLoader);
+        final Field classesField = ClassLoader.class.getDeclaredField("classes");
+        classesField.setAccessible(true);
+        @SuppressWarnings("unchecked") final Vector<Class<?>> classesVector
+            = (Vector<Class<?>>) classesField.get(classLoader);
+        final Set<Class<?>> classesSet = new HashSet<>(classesVector);
+        final Set<Class<?>> parentClassesSet = Optional.of(classLoader)
+                                                       .map(ClassLoader::getParent)
+                                                       .map(ClassOwnershipPlotter::getLoadedClassesFrom)
+                                                       .orElseGet(Collections::emptySet);
+        return Stream.concat(classesSet.stream(), parentClassesSet.stream())
+                     .filter(it -> {
+                         try {
+                             return it.getCanonicalName() != null;
+                         } catch (final NoClassDefFoundError error) {
+                             log.info("definition of class {} has not been found", it);
+                             return false;
+                         }
+                     })
+                     .collect(toSet());
+    }
 
     public final void writeDiagramOfClassesLoadedInContextToFile(final Object ownerPerspective, final String fileName) {
         writeDiagramToFile(ownerPerspective, fileName, getLoadedClassesFrom(currentThread().getContextClassLoader()));
@@ -43,30 +67,6 @@ public final class ClassOwnershipPlotter {
         final FileOutputStream fileOutputStream = new FileOutputStream(fileName);
         diagramDataPipeline.generateDiagram(ownerPerspective, domainOwnership, fileOutputStream);
         fileOutputStream.close();
-    }
-
-    @SneakyThrows
-    private static Set<Class<?>> getLoadedClassesFrom(final ClassLoader classLoader) {
-        log.info("fetching classes from " + classLoader);
-        final Field classesField = ClassLoader.class.getDeclaredField("classes");
-        classesField.setAccessible(true);
-        @SuppressWarnings("unchecked") final Vector<Class<?>> classesVector
-            = (Vector<Class<?>>) classesField.get(classLoader);
-        final Set<Class<?>> classesSet = new HashSet<>(classesVector);
-        final Set<Class<?>> parentClassesSet = Optional.of(classLoader)
-                                                       .map(ClassLoader::getParent)
-                                                       .map(ClassOwnershipPlotter::getLoadedClassesFrom)
-                                                       .orElseGet(Collections::emptySet);
-        return Stream.concat(classesSet.stream(), parentClassesSet.stream())
-                     .filter(it -> {
-                         try {
-                             return it.getCanonicalName() != null;
-                         } catch (final NoClassDefFoundError error) {
-                             log.info("definition of class " + it + " has not been found");
-                             return false;
-                         }
-                     })
-                     .collect(toSet());
     }
 
 }

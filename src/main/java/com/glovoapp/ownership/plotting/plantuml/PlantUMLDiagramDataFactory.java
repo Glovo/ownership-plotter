@@ -4,12 +4,12 @@ import com.glovoapp.ownership.plotting.DiagramFactory;
 import java.io.OutputStream;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
-import lombok.extern.java.Log;
+import lombok.extern.slf4j.Slf4j;
 import net.sourceforge.plantuml.FileFormat;
 import net.sourceforge.plantuml.FileFormatOption;
 import net.sourceforge.plantuml.SourceStringReader;
 
-@Log
+@Slf4j
 @RequiredArgsConstructor
 public final class PlantUMLDiagramDataFactory implements DiagramFactory<SourceStringReader> {
 
@@ -19,7 +19,7 @@ public final class PlantUMLDiagramDataFactory implements DiagramFactory<SourceSt
     @SneakyThrows
     public final void generateDiagram(final SourceStringReader diagramData, final OutputStream outputStream) {
         String generationDescription = diagramData.generateImage(outputStream, new FileFormatOption(fileFormat));
-        log.info("diagram generated; PlantUML output: " + generationDescription);
+        log.info("diagram generated; PlantUML output: {}", generationDescription);
     }
 
 }
