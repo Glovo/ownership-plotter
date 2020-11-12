@@ -24,11 +24,20 @@ import lombok.extern.slf4j.Slf4j;
 import net.sourceforge.plantuml.SourceStringReader;
 
 @Slf4j
-@RequiredArgsConstructor
 public final class PlantUMLDiagramDataTransformer implements DiagramDataTransformer<SourceStringReader> {
 
     private final DiagramConfiguration diagramConfiguration;
     private final Collection<OwnershipFilter> ownershipFilters;
+
+    /**
+     * @param diagramConfiguration global diagram settings
+     * @param ownershipFilters only classes that match any of given filters will be drawn on the diagram
+     */
+    public PlantUMLDiagramDataTransformer(final DiagramConfiguration diagramConfiguration,
+                                          final Collection<OwnershipFilter> ownershipFilters) {
+        this.diagramConfiguration = diagramConfiguration;
+        this.ownershipFilters = ownershipFilters;
+    }
 
     @Override
     public final SourceStringReader transformToDiagramData(final Collection<ClassOwnership> fullDomainOwnership) {
