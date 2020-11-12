@@ -18,24 +18,15 @@ import com.glovoapp.ownership.plotting.plantuml.OwnershipFilter;
 import java.util.Arrays;
 import java.util.Collection;
 import net.sourceforge.plantuml.FileFormat;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.reflections.Reflections;
-import org.reflections.scanners.SubTypesScanner;
 
 class ClassOwnershipPlotterTest {
 
-    @BeforeAll
-    static void loadAllGlovoClasses() {
-        // Load all classes in "com.glovoapp" package for analysis.
-        // We need to do this because class loaders are lazy and wouldn't load classes unless explicitly asked for them.
-        Reflections reflections = new Reflections("com.glovoapp", new SubTypesScanner(false));
-        reflections.getSubTypesOf(Object.class);
-    }
+    private static final String GLOVO_PACKAGE = "com.glovoapp";
 
     @Test
     void writeDiagramOfClassesLoadedInContextToFile_shouldWriteDiagram() {
-        ownershipPlotterWithNoFilters().writeDiagramOfClassesLoadedInContextToFile("/tmp/test-null-owner.svg");
+        ownershipPlotterWithNoFilters().writeDiagramOfClasspathToFile(GLOVO_PACKAGE, "/tmp/test-null-owner.svg");
         final String desiredOwner = TEAM_A.name();
         ownershipPlotterWithFilters(Arrays.asList(
             isOwnedBy(desiredOwner).and(
@@ -46,7 +37,7 @@ class ClassOwnershipPlotterTest {
             hasMethodsOwnedBy(desiredOwner).and(
                 hasDependenciesOwnedBy(desiredOwner)
             )
-        )).writeDiagramOfClassesLoadedInContextToFile("/tmp/test-team-a.svg");
+        )).writeDiagramOfClasspathToFile(GLOVO_PACKAGE, "/tmp/test-team-a.svg");
     }
 
     private static ClassOwnershipPlotter ownershipPlotterWithNoFilters() {

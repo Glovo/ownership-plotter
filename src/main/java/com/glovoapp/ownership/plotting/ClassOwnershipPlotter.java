@@ -18,6 +18,8 @@ import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.reflections.Reflections;
+import org.reflections.scanners.SubTypesScanner;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -25,6 +27,39 @@ public final class ClassOwnershipPlotter {
 
     private final ClassOwnershipExtractor extractor;
     private final DiagramDataPipeline diagramDataPipeline;
+
+    /**
+     * This method will load all classes in given package for analysis using {@link Reflections#getSubTypesOf(Class)}.
+     * We need to do this because class loaders are lazy and wouldn't load classes unless explicitly asked for them. All
+     * other classes currently loaded with {@link Thread#getContextClassLoader() context class loader} will be included
+     * as well.
+     *
+     * @param packagePrefix only classes from this package will be loaded, e.g. "com.example"
+     * @param fileName      name of the file to save the result to
+     */
+    public final void writeDiagramOfClasspathToFile(final String packagePrefix, final String fileName) {
+        loadAllClassesWithPrefix(packagePrefix);
+        writeDiagramToFile(fileName, getLoadedClassesFrom(currentThread().getContextClassLoader()));
+    }
+
+    @SneakyThrows
+    public final void writeDiagramToFile(final String fileName,
+                                         final Collection<Class<?>> domain) {
+        final Set<ClassOwnership> domainOwnership = domain.stream()
+                                                          .map(extractor::getOwnershipOf)
+                                                          .filter(Optional::isPresent)
+                                                          .map(Optional::get)
+                                                          .collect(Collectors.toSet());
+
+        final FileOutputStream fileOutputStream = new FileOutputStream(fileName);
+        diagramDataPipeline.generateDiagram(domainOwnership, fileOutputStream);
+        fileOutputStream.close();
+    }
+
+    private static void loadAllClassesWithPrefix(final String packagePrefix) {
+        Reflections reflections = new Reflections(packagePrefix, new SubTypesScanner(false));
+        reflections.getSubTypesOf(Object.class);
+    }
 
     @SneakyThrows
     private static Set<Class<?>> getLoadedClassesFrom(final ClassLoader classLoader) {
@@ -48,24 +83,6 @@ public final class ClassOwnershipPlotter {
                          }
                      })
                      .collect(toSet());
-    }
-
-    public final void writeDiagramOfClassesLoadedInContextToFile(final String fileName) {
-        writeDiagramToFile(fileName, getLoadedClassesFrom(currentThread().getContextClassLoader()));
-    }
-
-    @SneakyThrows
-    public final void writeDiagramToFile(final String fileName,
-                                         final Collection<Class<?>> domain) {
-        final Set<ClassOwnership> domainOwnership = domain.stream()
-                                                          .map(extractor::getOwnershipOf)
-                                                          .filter(Optional::isPresent)
-                                                          .map(Optional::get)
-                                                          .collect(Collectors.toSet());
-
-        final FileOutputStream fileOutputStream = new FileOutputStream(fileName);
-        diagramDataPipeline.generateDiagram(domainOwnership, fileOutputStream);
-        fileOutputStream.close();
     }
 
 }
