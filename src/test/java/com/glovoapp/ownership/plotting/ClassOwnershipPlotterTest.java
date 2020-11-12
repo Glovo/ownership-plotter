@@ -6,6 +6,7 @@ import static com.glovoapp.ownership.plotting.plantuml.OwnershipFilter.hasDepend
 import static com.glovoapp.ownership.plotting.plantuml.OwnershipFilter.hasDependenciesWithOwnerOtherThan;
 import static com.glovoapp.ownership.plotting.plantuml.OwnershipFilter.hasMethodsOwnedBy;
 import static com.glovoapp.ownership.plotting.plantuml.OwnershipFilter.hasMethodsWithOwnerOtherThan;
+import static com.glovoapp.ownership.plotting.plantuml.OwnershipFilter.isADependencyOfAClassThat;
 import static com.glovoapp.ownership.plotting.plantuml.OwnershipFilter.isOwnedBy;
 import static com.glovoapp.ownership.plotting.plantuml.PlantUMLDiagramDataPipelines.pipelineForFile;
 import static java.util.Collections.emptyList;
@@ -34,9 +35,10 @@ class ClassOwnershipPlotterTest {
                     hasMethodsWithOwnerOtherThan(desiredOwner)
                 )
             ),
-            hasMethodsOwnedBy(desiredOwner).and(
+            hasMethodsOwnedBy(desiredOwner).or(
                 hasDependenciesOwnedBy(desiredOwner)
-            )
+            ),
+            isADependencyOfAClassThat(isOwnedBy(desiredOwner))
         )).writeDiagramOfClasspathToFile(GLOVO_PACKAGE, "/tmp/test-team-a.svg");
     }
 

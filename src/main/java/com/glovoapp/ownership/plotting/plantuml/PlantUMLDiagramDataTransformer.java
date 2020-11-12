@@ -162,14 +162,13 @@ public final class PlantUMLDiagramDataTransformer implements DiagramDataTransfor
                                                      final boolean result = filter.test(
                                                          new OwnershipContext(ownership, domainOwnership)
                                                      );
-                                                     if (!result) {
-                                                         log.info(
-                                                             "class {} does not match filter: {}",
-                                                             ownership.getTheClass()
-                                                                      .getSimpleName(),
-                                                             filter
-                                                         );
-                                                     }
+                                                     log.info(
+                                                         "class {} {} filter: {}",
+                                                         ownership.getTheClass()
+                                                                  .getSimpleName(),
+                                                         result ? "matches" : "does not match",
+                                                         filter
+                                                     );
                                                      return result;
                                                  }))
                               .collect(toSet());
