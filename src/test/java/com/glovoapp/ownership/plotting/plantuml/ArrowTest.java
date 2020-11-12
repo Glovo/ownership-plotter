@@ -1,7 +1,7 @@
 package com.glovoapp.ownership.plotting.plantuml;
 
-import static java.util.Collections.singleton;
-import static java.util.stream.Collectors.toSet;
+import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
@@ -37,15 +37,22 @@ class ArrowTest {
                      .color(new Color(250, 128, 32))
                      .lineStyle(LineStyle.DASHED)
                      .length(5)
-                     .attributes(singleton(Attribute.DASHED))
+                     .attributes(singletonList(Attribute.DASHED))
                      .build(),
                 "*=[#FA8020,dashed]=====*"
             ),
             arguments(
                 Arrow.builder()
                      .direction(Direction.RIGHT_TO_LEFT)
-                     .attributes(Stream.of(Attribute.BOLD, Attribute.DASHED)
-                                       .collect(toSet()))
+                     .attributes(asList(Attribute.BOLD, Attribute.DASHED))
+                     .length(0)
+                     .build(),
+                "<-[#000000,bold,dashed]"
+            ),
+            arguments(
+                Arrow.builder()
+                     .direction(Direction.RIGHT_TO_LEFT)
+                     .attributes(asList(Attribute.DASHED, Attribute.BOLD))
                      .length(0)
                      .build(),
                 "<-[#000000,dashed,bold]"

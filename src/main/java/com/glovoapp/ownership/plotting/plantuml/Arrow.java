@@ -3,16 +3,16 @@ package com.glovoapp.ownership.plotting.plantuml;
 import static com.glovoapp.ownership.plotting.plantuml.Color.randomReadableColor;
 import static com.glovoapp.ownership.plotting.plantuml.Utils.RANDOM;
 import static com.glovoapp.ownership.plotting.plantuml.Utils.repeat;
-import static java.util.Collections.emptySet;
-import static java.util.Collections.singleton;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Stream.concat;
 import static lombok.AccessLevel.PACKAGE;
 import static lombok.AccessLevel.PRIVATE;
 
+import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import java.util.stream.Stream;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -35,11 +35,11 @@ final class Arrow implements Renderable {
     @Builder.Default
     private final int length = 1;
     @Builder.Default
-    private final Set<Attribute> attributes = emptySet();
+    private final List<Attribute> attributes = emptyList();
 
     public static Arrow randomHiddenArrow() {
         return Arrow.builder()
-                    .attributes(singleton(Attribute.HIDDEN))
+                    .attributes(singletonList(Attribute.HIDDEN))
                     .length(RANDOM.nextInt(5))
                     .build();
     }
@@ -57,7 +57,7 @@ final class Arrow implements Renderable {
             final HeadStyle headStyle = headStyle$set ? headStyle$value : $default$headStyle();
             final Color color = color$set ? color$value : $default$color();
             final int length = length$set ? length$value : $default$length();
-            final Set<Attribute> attributes = attributes$set ? attributes$value : $default$attributes();
+            final List<Attribute> attributes = attributes$set ? attributes$value : $default$attributes();
 
             if (length < 0) {
                 throw new IllegalArgumentException("length of an arrow must be greater than 0");

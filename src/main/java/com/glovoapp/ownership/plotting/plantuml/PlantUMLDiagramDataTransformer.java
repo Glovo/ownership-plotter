@@ -3,6 +3,7 @@ package com.glovoapp.ownership.plotting.plantuml;
 import static com.glovoapp.ownership.plotting.plantuml.Arrow.Attribute.BOLD;
 import static com.glovoapp.ownership.plotting.plantuml.Utils.RANDOM;
 import static java.util.Collections.singleton;
+import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 
@@ -112,7 +113,7 @@ public final class PlantUMLDiagramDataTransformer implements DiagramDataTransfor
                                               component,
                                               dependencyComponent,
                                               Arrow.builder()
-                                                   .attributes(singleton(BOLD))
+                                                   .attributes(singletonList(BOLD))
                                                    .headStyle(HeadStyle.FULL)
                                                    .length(1 + RANDOM.nextInt(3))
                                                    .randomColor()
