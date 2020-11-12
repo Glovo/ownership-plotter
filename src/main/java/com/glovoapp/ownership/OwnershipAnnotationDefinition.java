@@ -6,6 +6,7 @@ import java.lang.reflect.Method;
 import java.util.Optional;
 import lombok.NonNull;
 import lombok.SneakyThrows;
+import org.slf4j.LoggerFactory;
 
 public interface OwnershipAnnotationDefinition {
 
@@ -23,7 +24,20 @@ public interface OwnershipAnnotationDefinition {
             @Override
             public final Optional<String> getOwner(final AnnotatedElement givenElement) {
                 return Optional.ofNullable(givenElement)
-                               .map(it -> it.getAnnotation(annotationClass))
+                               .map(it -> {
+                                   try {
+                                       return it.getAnnotation(annotationClass);
+                                   } catch (final Exception exception) {
+                                       LoggerFactory.getLogger(OwnershipAnnotationDefinition.class)
+                                                    .warn(
+                                                        "failed to get annotation {} from {}, class will be ignored",
+                                                        annotationClass.getSimpleName(),
+                                                        it,
+                                                        exception
+                                                    );
+                                       return null;
+                                   }
+                               })
                                .map(this::getOwner);
             }
 
