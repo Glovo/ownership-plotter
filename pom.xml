@@ -6,7 +6,7 @@
 
   <groupId>com.glovoapp</groupId>
   <artifactId>ownership-plotter</artifactId>
-  <version>2.3-SNAPSHOT</version>
+  <version>3.0-SNAPSHOT</version>
 
   <properties>
     <java.version>8</java.version>
@@ -35,6 +35,11 @@
       <artifactId>logback-classic</artifactId>
       <version>1.2.3</version>
     </dependency>
+    <dependency>
+      <groupId>org.reflections</groupId>
+      <artifactId>reflections</artifactId>
+      <version>0.9.12</version>
+    </dependency>
 
     <dependency>
       <groupId>org.junit.jupiter</groupId>
@@ -58,12 +63,6 @@
       <groupId>org.mockito</groupId>
       <artifactId>mockito-all</artifactId>
       <version>1.10.19</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.reflections</groupId>
-      <artifactId>reflections</artifactId>
-      <version>0.9.12</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
