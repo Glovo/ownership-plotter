@@ -22,7 +22,7 @@ public interface OwnershipFilter extends Predicate<OwnershipContext> {
         return named(
             context -> Objects.equals(context.getClassOwnership()
                                              .getClassOwner(), desiredOwner),
-            "owned by " + desiredOwner
+            "is owned by " + desiredOwner
         );
     }
 
@@ -68,6 +68,22 @@ public interface OwnershipFilter extends Predicate<OwnershipContext> {
                               .stream()
                               .anyMatch(ownerPredicate),
             "has methods with owner matching " + ownerPredicate
+        );
+    }
+
+    static OwnershipFilter isADependencyOfAClassThat(final OwnershipFilter dependentFilter) {
+        return named(
+            context -> context.getDomainOwnership()
+                              .stream()
+                              .filter(ownership -> ownership.getDependencyOwnershipsStream()
+                                                            .map(Entry::getValue)
+                                                            .anyMatch(context.getClassOwnership()::equals))
+                              .anyMatch(dependentOwnership ->
+                                  dependentFilter.test(
+                                      new OwnershipContext(dependentOwnership, context.domainOwnership)
+                                  )
+                              ),
+            "is a dependency of a class that " + dependentFilter
         );
     }
 
