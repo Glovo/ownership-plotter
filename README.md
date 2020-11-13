@@ -10,6 +10,10 @@ Example diagram from the "perspective" of `TEAM_A`:
 
 # Usage
 
+## Requirements
+
+The tool depends on PlantUML for generating diagrams, which in turn requires [Graphviz](https://graphviz.org/download/) to be installed.
+
 ## Installation
 
 To install the tool in your local Maven repository, use the following command:
