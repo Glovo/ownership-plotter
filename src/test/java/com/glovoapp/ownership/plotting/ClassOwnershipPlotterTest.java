@@ -1,5 +1,6 @@
 package com.glovoapp.ownership.plotting;
 
+import static com.glovoapp.ownership.OwnershipAnnotationDefinition.define;
 import static com.glovoapp.ownership.examples.ExampleOwner.TEAM_A;
 import static com.glovoapp.ownership.plotting.plantuml.DiagramConfiguration.defaultDiagramConfiguration;
 import static com.glovoapp.ownership.plotting.plantuml.OwnershipFilter.hasDependenciesOwnedBy;
@@ -13,7 +14,6 @@ import static java.util.Collections.emptyList;
 
 import com.glovoapp.ownership.AnnotationBasedClassOwnershipExtractor;
 import com.glovoapp.ownership.CachedClassOwnershipExtractor;
-import com.glovoapp.ownership.OwnershipAnnotationDefinition;
 import com.glovoapp.ownership.examples.ExampleOwnershipAnnotation;
 import com.glovoapp.ownership.plotting.plantuml.OwnershipFilter;
 import java.util.Arrays;
@@ -50,7 +50,7 @@ class ClassOwnershipPlotterTest {
         return new ClassOwnershipPlotter(
             new CachedClassOwnershipExtractor(
                 new AnnotationBasedClassOwnershipExtractor(
-                    OwnershipAnnotationDefinition.define(ExampleOwnershipAnnotation.class)
+                    define(ExampleOwnershipAnnotation.class, ExampleOwnershipAnnotation::owner)
                 )
             ),
             pipelineForFile(FileFormat.SVG, defaultDiagramConfiguration(), filters)

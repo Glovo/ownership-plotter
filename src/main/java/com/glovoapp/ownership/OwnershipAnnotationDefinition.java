@@ -2,53 +2,66 @@ package com.glovoapp.ownership;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Optional;
+import java.util.function.Function;
 import lombok.NonNull;
 import lombok.SneakyThrows;
 import org.slf4j.LoggerFactory;
 
 public interface OwnershipAnnotationDefinition {
 
+    /**
+     * @deprecated use {@link #define(Class, Function)} instead.
+     */
     static OwnershipAnnotationDefinition define(@NonNull final Class<? extends Annotation> annotationClass) {
         return define(annotationClass, "owner");
     }
 
+    /**
+     * @deprecated use {@link #define(Class, Function)} instead.
+     */
+    @Deprecated
     @SneakyThrows
     static OwnershipAnnotationDefinition define(@NonNull final Class<? extends Annotation> annotationClass,
                                                 @NonNull final String ownerGetterName) {
         final Method ownerGetterMethod = annotationClass.getDeclaredMethod(ownerGetterName);
         ownerGetterMethod.setAccessible(true);
 
-        return new OwnershipAnnotationDefinition() {
-            @Override
-            public final Optional<String> getOwner(final AnnotatedElement givenElement) {
-                return Optional.ofNullable(givenElement)
-                               .map(it -> {
-                                   try {
-                                       return it.getAnnotation(annotationClass);
-                                   } catch (final Exception exception) {
-                                       LoggerFactory.getLogger(OwnershipAnnotationDefinition.class)
-                                                    .warn(
-                                                        "failed to get annotation {} from {}, class will be ignored",
-                                                        annotationClass.getSimpleName(),
-                                                        it,
-                                                        exception
-                                                    );
-                                       return null;
-                                   }
-                               })
-                               .map(this::getOwner);
+        return define(annotationClass, annotation -> {
+            try {
+                return ownerGetterMethod.invoke(annotation);
+            } catch (final IllegalAccessException | IllegalArgumentException | InvocationTargetException exception) {
+                throw new OwnerFetchingException(exception);
             }
+        });
+    }
 
-            private String getOwner(@NonNull final Annotation annotation) {
-                try {
-                    return String.valueOf(ownerGetterMethod.invoke(annotation));
-                } catch (final Exception ownerGetterInvocationException) {
-                    throw new OwnerFetchingException(ownerGetterInvocationException);
-                }
-            }
-        };
+    static <A extends Annotation> OwnershipAnnotationDefinition define(@NonNull final Class<A> annotationClass,
+                                                                       @NonNull final Function<A, ?> ownerGetter) {
+        return givenElement -> Optional.ofNullable(givenElement)
+                                       .map(it -> {
+                                           try {
+                                               return it.getAnnotation(annotationClass);
+                                           } catch (final Exception exception) {
+                                               LoggerFactory.getLogger(OwnershipAnnotationDefinition.class)
+                                                            .warn(
+                                                                "failed to get annotation {} from {}, class will be ignored",
+                                                                annotationClass.getSimpleName(),
+                                                                it,
+                                                                exception
+                                                            );
+                                               return null;
+                                           }
+                                       })
+                                       .map(annotation -> {
+                                           try {
+                                               return String.valueOf(ownerGetter.apply(annotation));
+                                           } catch (final Exception ownerGetterInvocationException) {
+                                               throw new OwnerFetchingException(ownerGetterInvocationException);
+                                           }
+                                       });
     }
 
     /**
