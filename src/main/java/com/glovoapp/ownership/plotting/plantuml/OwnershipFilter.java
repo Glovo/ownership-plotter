@@ -9,10 +9,36 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.function.BinaryOperator;
 import java.util.function.Predicate;
+import java.util.regex.Pattern;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 public interface OwnershipFilter extends Predicate<OwnershipContext> {
+
+    static OwnershipFilter isInPackageThatStartsWith(final String packagePrefix) {
+        return isInPackageThat(thePackage -> thePackage.getName()
+                                                       .startsWith(packagePrefix))
+            .named("is in package that starts with " + packagePrefix);
+    }
+
+    static OwnershipFilter isInPackageMatchingRegex(final String packageRegex) {
+        return isInPackageMatchingRegex(Pattern.compile(packageRegex));
+    }
+
+    static OwnershipFilter isInPackageMatchingRegex(final Pattern packagePattern) {
+        return isInPackageThat(thePackage -> packagePattern.matcher(thePackage.getName())
+                                                           .matches())
+            .named("is in package that matches pattern " + packagePattern);
+    }
+
+    static OwnershipFilter isInPackageThat(final Predicate<Package> packagePredicate) {
+        return named(
+            context -> packagePredicate.test(context.getClassOwnership()
+                                                    .getTheClass()
+                                                    .getPackage()),
+            "is in package that matches " + packagePredicate
+        );
+    }
 
     static OwnershipFilter isNotOwnedBy(final String desiredOwner) {
         return isOwnedBy(desiredOwner).negate();
