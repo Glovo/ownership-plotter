@@ -41,11 +41,7 @@ public final class AnnotationBasedClassOwnershipExtractor implements ClassOwners
                             field -> () -> getOwnershipOf(field.getType())
                         ));
 
-            if (classOwner != null || !methodOwners.isEmpty()) {
-                return Optional.of(new ClassOwnership(aClass, classOwner, methodOwners, dependenciesOwnership));
-            } else {
-                return Optional.empty();
-            }
+            return Optional.of(new ClassOwnership(aClass, classOwner, methodOwners, dependenciesOwnership));
         } catch (final NoClassDefFoundError error) {
             log.info("failed to fetch ownership of {}", aClass);
             return Optional.empty();
