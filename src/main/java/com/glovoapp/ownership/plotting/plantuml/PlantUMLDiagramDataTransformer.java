@@ -19,6 +19,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import net.sourceforge.plantuml.SourceStringReader;
 
@@ -69,7 +70,7 @@ public final class PlantUMLDiagramDataTransformer implements DiagramDataTransfor
         diagram.append("@enduml\n");
         final String resultDiagram = diagram.toString();
 
-        log.info("generated diagram:\n{}", resultDiagram);
+        log.info("generated diagram with {} lines:\n{}", countLines(resultDiagram), resultDiagram);
         return new SourceStringReader(resultDiagram);
     }
 
@@ -187,6 +188,15 @@ public final class PlantUMLDiagramDataTransformer implements DiagramDataTransfor
                                                      return result;
                                                  }))
                               .collect(toSet());
+    }
+
+    @SneakyThrows
+    private static long countLines(final String input) {
+        return Optional.ofNullable(input)
+                .map(it -> it.chars()
+                             .filter(character -> '\n' == character)
+                             .count() + 1)
+                .orElse(0L);
     }
 
 }
