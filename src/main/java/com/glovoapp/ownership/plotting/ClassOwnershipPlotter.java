@@ -39,7 +39,17 @@ public final class ClassOwnershipPlotter {
      */
     public final void writeDiagramOfClasspathToFile(final String packagePrefix, final String fileName) {
         loadAllClassesWithPrefix(packagePrefix);
-        writeDiagramToFile(fileName, getLoadedClassesFrom(currentThread().getContextClassLoader()));
+        writeDiagramToFile(
+            fileName,
+            getLoadedClassesFrom(currentThread().getContextClassLoader())
+                .stream()
+                .filter(aClass -> Optional.of(aClass)
+                                          .map(Class::getPackage)
+                                          .map(Package::getName)
+                                          .map(packageName -> packageName.startsWith(packagePrefix))
+                                          .orElse(false))
+                .collect(toSet())
+        );
     }
 
     @SneakyThrows
