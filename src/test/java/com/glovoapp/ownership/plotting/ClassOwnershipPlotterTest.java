@@ -3,7 +3,7 @@ package com.glovoapp.ownership.plotting;
 import static com.glovoapp.ownership.OwnershipAnnotationDefinition.define;
 import static com.glovoapp.ownership.examples.ExampleOwner.TEAM_A;
 import static com.glovoapp.ownership.plotting.plantuml.DiagramConfiguration.defaultDiagramConfiguration;
-import static com.glovoapp.ownership.plotting.plantuml.OwnershipFilter.hasDependenciesOwnedBy;
+import static com.glovoapp.ownership.plotting.plantuml.OwnershipFilter.hasDependenciesThat;
 import static com.glovoapp.ownership.plotting.plantuml.OwnershipFilter.hasDependenciesWithOwnerOtherThan;
 import static com.glovoapp.ownership.plotting.plantuml.OwnershipFilter.hasMethodsOwnedBy;
 import static com.glovoapp.ownership.plotting.plantuml.OwnershipFilter.hasMethodsWithOwnerOtherThan;
@@ -29,16 +29,17 @@ class ClassOwnershipPlotterTest {
     void writeDiagramOfClassesLoadedInContextToFile_shouldWriteDiagram() {
         ownershipPlotterWithNoFilters().writeDiagramOfClasspathToFile(GLOVO_PACKAGE, "/tmp/test-null-owner.svg");
         final String desiredOwner = TEAM_A.name();
+        final OwnershipFilter isARelevantClassOfDesiredOwner = isOwnedBy(desiredOwner).and(
+            hasDependenciesWithOwnerOtherThan(desiredOwner).or(
+                hasMethodsWithOwnerOtherThan(desiredOwner)
+            )
+        );
         ownershipPlotterWithFilters(Arrays.asList(
-            isOwnedBy(desiredOwner).and(
-                hasDependenciesWithOwnerOtherThan(desiredOwner).or(
-                    hasMethodsWithOwnerOtherThan(desiredOwner)
-                )
-            ),
+            isARelevantClassOfDesiredOwner,
             hasMethodsOwnedBy(desiredOwner).or(
-                hasDependenciesOwnedBy(desiredOwner)
+                hasDependenciesThat(isARelevantClassOfDesiredOwner)
             ),
-            isADependencyOfAClassThat(isOwnedBy(desiredOwner))
+            isADependencyOfAClassThat(isARelevantClassOfDesiredOwner)
         )).writeDiagramOfClasspathToFile(GLOVO_PACKAGE, "/tmp/test-team-a.svg");
     }
 
