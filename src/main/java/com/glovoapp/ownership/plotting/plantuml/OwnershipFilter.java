@@ -7,6 +7,7 @@ import com.glovoapp.ownership.plotting.plantuml.OwnershipFilter.OwnershipContext
 import java.util.Collection;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.BinaryOperator;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
@@ -33,9 +34,12 @@ public interface OwnershipFilter extends Predicate<OwnershipContext> {
 
     static OwnershipFilter isInPackageThat(final Predicate<Package> packagePredicate) {
         return named(
-            context -> packagePredicate.test(context.getClassOwnership()
-                                                    .getTheClass()
-                                                    .getPackage()),
+            context -> Optional.of(context)
+                               .map(OwnershipContext::getClassOwnership)
+                               .map(ClassOwnership::getTheClass)
+                               .map(Class::getPackage)
+                               .map(packagePredicate::test)
+                               .orElse(false),
             "is in package that matches " + packagePredicate
         );
     }
