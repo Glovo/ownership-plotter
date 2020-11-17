@@ -70,7 +70,7 @@ public final class PlantUMLDiagramDataTransformer implements DiagramDataTransfor
         diagram.append("@enduml\n");
         final String resultDiagram = diagram.toString();
 
-        log.info("generated diagram with {} lines:\n{}", countLines(resultDiagram), resultDiagram);
+        log.info("generated diagram with {} lines", countLines(resultDiagram));
         return new SourceStringReader(resultDiagram);
     }
 
@@ -174,29 +174,20 @@ public final class PlantUMLDiagramDataTransformer implements DiagramDataTransfor
             : ownershipFilters.stream()
                               .flatMap(filter ->
                                   domainOwnership.stream()
-                                                 .filter(ownership -> {
-                                                     final boolean result = filter.test(
-                                                         new OwnershipContext(ownership, domainOwnership)
-                                                     );
-                                                     log.info(
-                                                         "class {} {} filter: {}",
-                                                         ownership.getTheClass()
-                                                                  .getSimpleName(),
-                                                         result ? "matches" : "does not match",
-                                                         filter
-                                                     );
-                                                     return result;
-                                                 }))
+                                                 .map(ownership -> new OwnershipContext(ownership, domainOwnership))
+                                                 .filter(filter)
+                                                 .map(OwnershipContext::getClassOwnership)
+                              )
                               .collect(toSet());
     }
 
     @SneakyThrows
     private static long countLines(final String input) {
         return Optional.ofNullable(input)
-                .map(it -> it.chars()
-                             .filter(character -> '\n' == character)
-                             .count() + 1)
-                .orElse(0L);
+                       .map(it -> it.chars()
+                                    .filter(character -> '\n' == character)
+                                    .count() + 1)
+                       .orElse(0L);
     }
 
 }
