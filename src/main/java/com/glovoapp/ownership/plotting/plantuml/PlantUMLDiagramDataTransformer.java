@@ -8,10 +8,11 @@ import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 
 import com.glovoapp.ownership.ClassOwnership;
+import com.glovoapp.ownership.plotting.OwnershipFilter;
 import com.glovoapp.ownership.plotting.DiagramDataTransformer;
 import com.glovoapp.ownership.plotting.plantuml.Arrow.HeadStyle;
 import com.glovoapp.ownership.plotting.plantuml.Arrow.LineStyle;
-import com.glovoapp.ownership.plotting.plantuml.OwnershipFilter.OwnershipContext;
+import com.glovoapp.ownership.plotting.OwnershipFilter.OwnershipContext;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -30,23 +31,18 @@ import net.sourceforge.plantuml.SourceStringReader;
 public final class PlantUMLDiagramDataTransformer implements DiagramDataTransformer<SourceStringReader> {
 
     private final DiagramConfiguration diagramConfiguration;
-    private final Collection<OwnershipFilter> ownershipFilters;
 
     /**
      * @param diagramConfiguration global diagram settings
-     * @param ownershipFilters     only classes that match any of given filters will be drawn on the diagram
      */
-    public PlantUMLDiagramDataTransformer(final DiagramConfiguration diagramConfiguration,
-                                          final Collection<OwnershipFilter> ownershipFilters) {
+    public PlantUMLDiagramDataTransformer(final DiagramConfiguration diagramConfiguration) {
         this.diagramConfiguration = diagramConfiguration;
-        this.ownershipFilters = ownershipFilters;
     }
 
     @Override
-    public final SourceStringReader transformToDiagramData(final Collection<ClassOwnership> fullDomainOwnership) {
+    public final SourceStringReader transformToDiagramData(final Set<ClassOwnership> domainOwnership) {
         final StringBuilder diagram = new StringBuilder("@startuml\n").append(diagramConfiguration.render());
 
-        final Set<ClassOwnership> domainOwnership = filterOwnershipDomain(fullDomainOwnership);
         final Set<Component> components = generateComponentsFromDomain(domainOwnership);
         final Set<Owner> owners = createOwnersFromComponents(components);
         final Set<Component> componentsWithNoOwners = getComponentsWithNoOwners(components);
@@ -169,50 +165,6 @@ public final class PlantUMLDiagramDataTransformer implements DiagramDataTransfor
         return domainOwnership.stream()
                               .map(Component::new)
                               .collect(toSet());
-    }
-
-    private Set<ClassOwnership> filterOwnershipDomain(final Collection<ClassOwnership> domainOwnership) {
-        final AtomicInteger filteredClasses = new AtomicInteger(0);
-        final AtomicInteger percentageSoFar = new AtomicInteger(0);
-        final AtomicLong highestFilteringTimeMillis = new AtomicLong(0);
-        return ownershipFilters.isEmpty()
-            ? new HashSet<>(domainOwnership)
-            : domainOwnership.stream()
-                             .filter(ownership -> {
-                                 final long startTime = currentTimeMillis();
-                                 boolean result = ownershipFilters.stream()
-                                                                  .anyMatch(filter -> filter.test(
-                                                                      new OwnershipContext(ownership, domainOwnership)
-                                                                  ));
-                                 final long endTime = currentTimeMillis();
-                                 final long filteringTime = endTime - startTime;
-                                 highestFilteringTimeMillis.updateAndGet(currentHighestFilteringTime -> {
-                                     if (filteringTime > currentHighestFilteringTime) {
-                                         log.info(
-                                             "filtering of {} took longest so far: {}ms",
-                                             ownership.getTheClass().getCanonicalName(),
-                                             filteringTime
-                                         );
-                                         return filteringTime;
-                                     } else {
-                                         return currentHighestFilteringTime;
-                                     }
-                                 });
-                                 final int filteredClassesCount = filteredClasses.incrementAndGet();
-                                 final int oldPercentage = percentageSoFar.get();
-                                 final int newPercentage = (filteredClassesCount * 100) / domainOwnership.size();
-                                 percentageSoFar.set(newPercentage);
-                                 if (newPercentage != oldPercentage) {
-                                     log.info(
-                                         "filtered {}% ({}/{} classes)",
-                                         newPercentage,
-                                         filteredClassesCount,
-                                         domainOwnership.size()
-                                     );
-                                 }
-                                 return result;
-                             })
-                             .collect(toSet());
     }
 
     @SneakyThrows

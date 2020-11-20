@@ -2,22 +2,20 @@ package com.glovoapp.ownership.plotting;
 
 import static com.glovoapp.ownership.OwnershipAnnotationDefinition.define;
 import static com.glovoapp.ownership.examples.ExampleOwner.TEAM_A;
+import static com.glovoapp.ownership.plotting.OwnershipFilter.hasDependenciesThat;
+import static com.glovoapp.ownership.plotting.OwnershipFilter.hasDependenciesWithOwnerOtherThan;
+import static com.glovoapp.ownership.plotting.OwnershipFilter.hasMethodsOwnedBy;
+import static com.glovoapp.ownership.plotting.OwnershipFilter.hasMethodsWithOwnerOtherThan;
+import static com.glovoapp.ownership.plotting.OwnershipFilter.isADependencyOfAClassThat;
+import static com.glovoapp.ownership.plotting.OwnershipFilter.isInPackageThatStartsWith;
+import static com.glovoapp.ownership.plotting.OwnershipFilter.isOwnedBy;
 import static com.glovoapp.ownership.plotting.plantuml.DiagramConfiguration.defaultDiagramConfiguration;
-import static com.glovoapp.ownership.plotting.plantuml.OwnershipFilter.hasDependenciesThat;
-import static com.glovoapp.ownership.plotting.plantuml.OwnershipFilter.hasDependenciesWithOwnerOtherThan;
-import static com.glovoapp.ownership.plotting.plantuml.OwnershipFilter.hasMethodsOwnedBy;
-import static com.glovoapp.ownership.plotting.plantuml.OwnershipFilter.hasMethodsWithOwnerOtherThan;
-import static com.glovoapp.ownership.plotting.plantuml.OwnershipFilter.isADependencyOfAClassThat;
-import static com.glovoapp.ownership.plotting.plantuml.OwnershipFilter.isInPackageThatStartsWith;
-import static com.glovoapp.ownership.plotting.plantuml.OwnershipFilter.isOwnedBy;
 import static com.glovoapp.ownership.plotting.plantuml.PlantUMLDiagramDataPipelines.pipelineForFile;
-import static java.util.Arrays.asList;
 
 import com.glovoapp.ownership.AnnotationBasedClassOwnershipExtractor;
 import com.glovoapp.ownership.CachedClassOwnershipExtractor;
 import com.glovoapp.ownership.classpath.ReflectionsClasspathLoader;
 import com.glovoapp.ownership.examples.ExampleOwnershipAnnotation;
-import com.glovoapp.ownership.plotting.plantuml.OwnershipFilter;
 import net.sourceforge.plantuml.FileFormat;
 import org.junit.jupiter.api.Test;
 
@@ -27,7 +25,7 @@ class ClassOwnershipPlotterTest {
 
     @Test
     void writeDiagramOfClassesLoadedInContextToFile_shouldWriteDiagram() {
-        ownershipPlotterWithFilters(isInPackageThatStartsWith("com.glovoapp"))
+        ownershipPlotterWithFilter(isInPackageThatStartsWith("com.glovoapp"))
             .writeDiagramOfClasspathToFile(GLOVO_PACKAGE, "/tmp/test-null-owner.svg");
 
         final String desiredOwner = TEAM_A.name();
@@ -36,16 +34,20 @@ class ClassOwnershipPlotterTest {
                 hasMethodsWithOwnerOtherThan(desiredOwner)
             )
         );
-        ownershipPlotterWithFilters(
-            isARelevantClassOfDesiredOwner,
-            hasMethodsOwnedBy(desiredOwner).or(
-                hasDependenciesThat(isARelevantClassOfDesiredOwner)
-            ),
-            isADependencyOfAClassThat(isARelevantClassOfDesiredOwner)
+        ownershipPlotterWithFilter(
+            isARelevantClassOfDesiredOwner
+                .and(
+                    hasMethodsOwnedBy(desiredOwner).or(
+                        hasDependenciesThat(isARelevantClassOfDesiredOwner)
+                    )
+                )
+                .and(
+                    isADependencyOfAClassThat(isARelevantClassOfDesiredOwner)
+                )
         ).writeDiagramOfClasspathToFile(GLOVO_PACKAGE, "/tmp/test-team-a.svg");
     }
 
-    private static ClassOwnershipPlotter ownershipPlotterWithFilters(final OwnershipFilter... filters) {
+    private static ClassOwnershipPlotter ownershipPlotterWithFilter(final OwnershipFilter filter) {
         return new ClassOwnershipPlotter(
             new ReflectionsClasspathLoader(),
             new CachedClassOwnershipExtractor(
@@ -53,7 +55,8 @@ class ClassOwnershipPlotterTest {
                     define(ExampleOwnershipAnnotation.class, ExampleOwnershipAnnotation::owner)
                 )
             ),
-            pipelineForFile(FileFormat.SVG, defaultDiagramConfiguration(), asList(filters))
+            filter,
+            pipelineForFile(FileFormat.SVG, defaultDiagramConfiguration())
         );
     }
 

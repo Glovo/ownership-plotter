@@ -1,20 +1,30 @@
-package com.glovoapp.ownership.plotting.plantuml;
+package com.glovoapp.ownership.plotting;
 
+import static java.lang.System.currentTimeMillis;
 import static lombok.AccessLevel.PACKAGE;
 
 import com.glovoapp.ownership.ClassOwnership;
-import com.glovoapp.ownership.plotting.plantuml.OwnershipFilter.OwnershipContext;
+import com.glovoapp.ownership.plotting.OwnershipFilter.OwnershipContext;
 import java.util.Collection;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BinaryOperator;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public interface OwnershipFilter extends Predicate<OwnershipContext> {
+
+    static OwnershipFilter any() {
+        return ignore -> true;
+    }
 
     static OwnershipFilter isInPackageThatStartsWith(final String packagePrefix) {
         return isInPackageThat(thePackage -> thePackage.getName()
@@ -131,6 +141,91 @@ public interface OwnershipFilter extends Predicate<OwnershipContext> {
 
     default OwnershipFilter composeWith(final OwnershipFilter another, final BinaryOperator<Boolean> operator) {
         return context -> operator.apply(this.test(context), another.test(context));
+    }
+
+    /**
+     * The complexity of some filters might not be optimal when a large classpath is plotted. For example {@link
+     * #isADependencyOfAClassThat(OwnershipFilter) isADependencyOfAClassThat} scans the entire {@link
+     * OwnershipContext#getDomainOwnership() domain ownership} for each {@link ClassOwnership} given. When a filter is
+     * cached, it will always respond with the same result given the same {@link ClassOwnership}. The cache ignores the
+     * {@link OwnershipContext#getDomainOwnership() domain ownership} completely, making it not appropriate to use when
+     * plotting multiple different domains. In some cases a cached version of given filter might be less performant than
+     * non-cached version; please use {@link #debugged()} to determine whether or not the performance of this filter has
+     * increased.
+     *
+     * @return a cached version of this filter
+     */
+    default OwnershipFilter cached() {
+        final ConcurrentHashMap<ClassOwnership, Boolean> cache = new ConcurrentHashMap<>();
+        return named(
+            ownershipContext -> cache.computeIfAbsent(
+                ownershipContext.getClassOwnership(),
+                classOwnership -> this.test(ownershipContext)
+            ),
+            "CACHED[" + this + ']'
+        );
+    }
+
+    /**
+     * Adds logging for the following metrics of this filter:
+     * <ul>
+     *     <li>longest evaluation time</li>
+     *     <li>domain filtering progress</li>
+     * </ul>
+     *
+     * @return a debugged version of this filter
+     */
+    default OwnershipFilter debugged() {
+        final Logger log = LoggerFactory.getLogger(OwnershipFilter.class);
+        final AtomicInteger filteredClasses = new AtomicInteger(0);
+        final AtomicInteger percentageSoFar = new AtomicInteger(0);
+        final AtomicLong highestFilteringTimeMillis = new AtomicLong(0);
+        return named(
+            ownershipContext -> {
+                final int domainOwnershipSize = ownershipContext.getDomainOwnership()
+                                                                .size();
+
+                final long startTime = currentTimeMillis();
+                final boolean result = this.test(ownershipContext);
+                final long endTime = currentTimeMillis();
+                final long filteringTime = endTime - startTime;
+
+                highestFilteringTimeMillis.updateAndGet(currentHighestFilteringTime -> {
+                    if (filteringTime > currentHighestFilteringTime) {
+                        log.info(
+                            "filtering of {} in {} took longest so far: {}ms",
+                            ownershipContext.getClassOwnership()
+                                            .getTheClass()
+                                            .getCanonicalName(),
+                            this,
+                            filteringTime
+                        );
+                        return filteringTime;
+                    } else {
+                        return currentHighestFilteringTime;
+                    }
+                });
+
+                filteredClasses.updateAndGet(filteredClassesCount -> {
+                    final int currentFilteredClassesCount = filteredClassesCount + 1;
+                    final int oldPercentage = percentageSoFar.get();
+                    final int newPercentage = (currentFilteredClassesCount * 100) / domainOwnershipSize;
+                    percentageSoFar.set(newPercentage);
+                    if (newPercentage != oldPercentage) {
+                        log.info(
+                            "{} filtered {}% ({}/{} classes) so far",
+                            this,
+                            newPercentage,
+                            currentFilteredClassesCount,
+                            domainOwnershipSize
+                        );
+                    }
+                    return currentFilteredClassesCount;
+                });
+                return result;
+            },
+            "DEBUGGED[" + this + ']'
+        );
     }
 
     default OwnershipFilter named(final String filterName) {
