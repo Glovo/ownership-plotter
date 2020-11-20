@@ -2,7 +2,7 @@ package com.glovoapp.ownership.plotting;
 
 import com.glovoapp.ownership.ClassOwnership;
 import java.io.OutputStream;
-import java.util.Collection;
+import java.util.Set;
 
 public interface DiagramDataPipeline {
 
@@ -16,7 +16,7 @@ public interface DiagramDataPipeline {
         };
     }
 
-    void generateDiagram(final Collection<ClassOwnership> classOwnerships,
+    void generateDiagram(final Set<ClassOwnership> classOwnerships,
                          final OutputStream outputStream);
 
 }

@@ -164,6 +164,7 @@
         </executions>
         <configuration>
           <source>${java.version}</source>
+          <additionalparam>-Xdoclint:none</additionalparam>
         </configuration>
       </plugin>
     </plugins>
