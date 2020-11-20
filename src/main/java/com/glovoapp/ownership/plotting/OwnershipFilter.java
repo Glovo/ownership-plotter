@@ -146,9 +146,9 @@ public interface OwnershipFilter extends Predicate<OwnershipContext> {
     /**
      * The complexity of some filters might not be optimal when a large classpath is plotted. For example {@link
      * #isADependencyOfAClassThat(OwnershipFilter) isADependencyOfAClassThat} scans the entire {@link
-     * OwnershipContext#domainOwnership domain ownership} for each {@link ClassOwnership} given. When a filter is
+     * OwnershipContext#getDomainOwnership() domain ownership} for each {@link ClassOwnership} given. When a filter is
      * cached, it will always respond with the same result given the same {@link ClassOwnership}. The cache ignores the
-     * {@link OwnershipContext#domainOwnership domain ownership} completely, making it not appropriate to use when
+     * {@link OwnershipContext#getDomainOwnership() domain ownership} completely, making it not appropriate to use when
      * plotting multiple different domains. In some cases a cached version of given filter might be less performant than
      * non-cached version; please use {@link #debugged()} to determine whether or not the performance of this filter has
      * increased.
