@@ -15,6 +15,7 @@ import static java.util.Arrays.asList;
 
 import com.glovoapp.ownership.AnnotationBasedClassOwnershipExtractor;
 import com.glovoapp.ownership.CachedClassOwnershipExtractor;
+import com.glovoapp.ownership.classpath.ReflectionsClasspathLoader;
 import com.glovoapp.ownership.examples.ExampleOwnershipAnnotation;
 import com.glovoapp.ownership.plotting.plantuml.OwnershipFilter;
 import net.sourceforge.plantuml.FileFormat;
@@ -46,6 +47,7 @@ class ClassOwnershipPlotterTest {
 
     private static ClassOwnershipPlotter ownershipPlotterWithFilters(final OwnershipFilter... filters) {
         return new ClassOwnershipPlotter(
+            new ReflectionsClasspathLoader(),
             new CachedClassOwnershipExtractor(
                 new AnnotationBasedClassOwnershipExtractor(
                     define(ExampleOwnershipAnnotation.class, ExampleOwnershipAnnotation::owner)
