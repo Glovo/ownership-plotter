@@ -22,10 +22,6 @@ import org.slf4j.LoggerFactory;
 
 public interface OwnershipFilter extends Predicate<OwnershipContext> {
 
-    static OwnershipFilter any() {
-        return ignore -> true;
-    }
-
     static OwnershipFilter isInPackageThatStartsWith(final String packagePrefix) {
         return isInPackageThat(thePackage -> thePackage.getName()
                                                        .startsWith(packagePrefix))
@@ -115,14 +111,14 @@ public interface OwnershipFilter extends Predicate<OwnershipContext> {
         return named(
             context -> context.getDomainOwnership()
                               .stream()
-                              .filter(ownership -> ownership.getDependencyOwnershipsStream()
-                                                            .map(Entry::getValue)
-                                                            .anyMatch(context.getClassOwnership()::equals))
-                              .anyMatch(dependentOwnership ->
+                              .filter(dependentOwnership ->
                                   dependentFilter.test(
                                       new OwnershipContext(dependentOwnership, context.domainOwnership)
                                   )
-                              ),
+                              )
+                              .anyMatch(ownership -> ownership.getDependencyOwnershipsStream()
+                                                              .map(Entry::getValue)
+                                                              .anyMatch(context.getClassOwnership()::equals)),
             "is a dependency of a class that " + dependentFilter
         );
     }
