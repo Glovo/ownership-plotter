@@ -2,15 +2,16 @@ package com.glovoapp.ownership.plotting;
 
 import static com.glovoapp.ownership.OwnershipAnnotationDefinition.define;
 import static com.glovoapp.ownership.examples.ExampleOwner.TEAM_A;
-import static com.glovoapp.ownership.plotting.OwnershipFilter.hasDependenciesThat;
-import static com.glovoapp.ownership.plotting.OwnershipFilter.hasDependenciesWithOwnerOtherThan;
-import static com.glovoapp.ownership.plotting.OwnershipFilter.hasMethodsOwnedBy;
-import static com.glovoapp.ownership.plotting.OwnershipFilter.hasMethodsWithOwnerOtherThan;
-import static com.glovoapp.ownership.plotting.OwnershipFilter.isADependencyOfAClassThat;
-import static com.glovoapp.ownership.plotting.OwnershipFilter.isInPackageThatStartsWith;
-import static com.glovoapp.ownership.plotting.OwnershipFilter.isOwnedBy;
+import static com.glovoapp.ownership.plotting.ClassOwnershipFilter.hasDependenciesThat;
+import static com.glovoapp.ownership.plotting.ClassOwnershipFilter.hasDependenciesWithOwnerOtherThan;
+import static com.glovoapp.ownership.plotting.ClassOwnershipFilter.hasMethodsOwnedBy;
+import static com.glovoapp.ownership.plotting.ClassOwnershipFilter.hasMethodsWithOwnerOtherThan;
+import static com.glovoapp.ownership.plotting.ClassOwnershipFilter.isADependencyOfAClassThat;
+import static com.glovoapp.ownership.plotting.ClassOwnershipFilter.isInPackageThatStartsWith;
+import static com.glovoapp.ownership.plotting.ClassOwnershipFilter.isOwnedBy;
 import static com.glovoapp.ownership.plotting.plantuml.DiagramConfiguration.defaultDiagramConfiguration;
 import static com.glovoapp.ownership.plotting.plantuml.PlantUMLDiagramDataPipelines.pipelineForFile;
+import static java.util.concurrent.Executors.newFixedThreadPool;
 
 import com.glovoapp.ownership.AnnotationBasedClassOwnershipExtractor;
 import com.glovoapp.ownership.CachedClassOwnershipExtractor;
@@ -29,7 +30,7 @@ class ClassOwnershipPlotterTest {
             .writeDiagramOfClasspathToFile(GLOVO_PACKAGE, "/tmp/test-null-owner.svg");
 
         final String desiredOwner = TEAM_A.name();
-        final OwnershipFilter isARelevantClassOfDesiredOwner = isOwnedBy(desiredOwner).and(
+        final ClassOwnershipFilter isARelevantClassOfDesiredOwner = isOwnedBy(desiredOwner).and(
             hasDependenciesWithOwnerOtherThan(desiredOwner).or(
                 hasMethodsWithOwnerOtherThan(desiredOwner)
             )
@@ -47,7 +48,7 @@ class ClassOwnershipPlotterTest {
         ).writeDiagramOfClasspathToFile(GLOVO_PACKAGE, "/tmp/test-team-a.svg");
     }
 
-    private static ClassOwnershipPlotter ownershipPlotterWithFilter(final OwnershipFilter filter) {
+    private static ClassOwnershipPlotter ownershipPlotterWithFilter(final ClassOwnershipFilter filter) {
         return new ClassOwnershipPlotter(
             new ReflectionsClasspathLoader(),
             new CachedClassOwnershipExtractor(
@@ -55,7 +56,11 @@ class ClassOwnershipPlotterTest {
                     define(ExampleOwnershipAnnotation.class, ExampleOwnershipAnnotation::owner)
                 )
             ),
-            filter,
+            DomainOwnershipFilter.simple(filter)
+                                 .parallelized(
+                                     newFixedThreadPool(4),
+                                     4
+                                 ),
             pipelineForFile(FileFormat.SVG, defaultDiagramConfiguration())
         );
     }

@@ -52,31 +52,26 @@ class PlotOwnershipTest {
     @Test
     void shouldPlotOwnership() {
         new ClassOwnershipPlotter(
+            new ReflectionsClasspathLoader(),
             new CachedClassOwnershipExtractor(
                 new AnnotationBasedClassOwnershipExtractor(
                     define(YourOwnershipAnnotation.class)
                 )
             ),
-            pipelineForFile(
-                FileFormat.SVG,
-                defaultDiagramConfiguration(),
-                emptyList()
-            )
+            it -> it,
+            pipelineForFile(FileFormat.SVG, defaultDiagramConfiguration())
         ).writeDiagramOfClasspathToFile("com.example", "/tmp/com-example-domain.svg");
     }
 
 }
 ``` 
 
-You can filter the classes that you wish to include in the diagram by adding "ownership filters" in `pipelineForFile`:
+You can filter the classes that you wish to include in the diagram by adding "ownership filters":
 
 ```java
-pipelineForFile(
-    FileFormat.SVG,
-    defaultDiagramConfiguration(),
-    asList(
-        isOwnedBy("my-wonderful-team"),
-        isADependencyOfAClassThat(isOwnedBy("my-wonderful-team"))
+DomainOwnershipFilter.simple(
+    isOwnedBy("my-wonderful-team").and(
+       isADependencyOfAClassThat(isOwnedBy("my-wonderful-team"))
     )
 )
 ```

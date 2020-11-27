@@ -2,26 +2,19 @@ package com.glovoapp.ownership.plotting.plantuml;
 
 import static com.glovoapp.ownership.plotting.plantuml.Arrow.Attribute.BOLD;
 import static com.glovoapp.ownership.plotting.plantuml.Utils.RANDOM;
-import static java.lang.System.currentTimeMillis;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 
 import com.glovoapp.ownership.ClassOwnership;
-import com.glovoapp.ownership.plotting.OwnershipFilter;
 import com.glovoapp.ownership.plotting.DiagramDataTransformer;
 import com.glovoapp.ownership.plotting.plantuml.Arrow.HeadStyle;
 import com.glovoapp.ownership.plotting.plantuml.Arrow.LineStyle;
-import com.glovoapp.ownership.plotting.OwnershipFilter.OwnershipContext;
-import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;

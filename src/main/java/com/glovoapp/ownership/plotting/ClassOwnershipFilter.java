@@ -4,7 +4,7 @@ import static java.lang.System.currentTimeMillis;
 import static lombok.AccessLevel.PACKAGE;
 
 import com.glovoapp.ownership.ClassOwnership;
-import com.glovoapp.ownership.plotting.OwnershipFilter.OwnershipContext;
+import com.glovoapp.ownership.plotting.ClassOwnershipFilter.OwnershipContext;
 import java.util.Collection;
 import java.util.Map.Entry;
 import java.util.Objects;
@@ -14,31 +14,32 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BinaryOperator;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.regex.Pattern;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public interface OwnershipFilter extends Predicate<OwnershipContext> {
+public interface ClassOwnershipFilter extends Predicate<OwnershipContext> {
 
-    static OwnershipFilter isInPackageThatStartsWith(final String packagePrefix) {
+    static ClassOwnershipFilter isInPackageThatStartsWith(final String packagePrefix) {
         return isInPackageThat(thePackage -> thePackage.getName()
                                                        .startsWith(packagePrefix))
             .named("is in package that starts with " + packagePrefix);
     }
 
-    static OwnershipFilter isInPackageMatchingRegex(final String packageRegex) {
+    static ClassOwnershipFilter isInPackageMatchingRegex(final String packageRegex) {
         return isInPackageMatchingRegex(Pattern.compile(packageRegex));
     }
 
-    static OwnershipFilter isInPackageMatchingRegex(final Pattern packagePattern) {
+    static ClassOwnershipFilter isInPackageMatchingRegex(final Pattern packagePattern) {
         return isInPackageThat(thePackage -> packagePattern.matcher(thePackage.getName())
                                                            .matches())
             .named("is in package that matches pattern " + packagePattern);
     }
 
-    static OwnershipFilter isInPackageThat(final Predicate<Package> packagePredicate) {
+    static ClassOwnershipFilter isInPackageThat(final Predicate<Package> packagePredicate) {
         return named(
             context -> Optional.of(context)
                                .map(OwnershipContext::getClassOwnership)
@@ -50,11 +51,11 @@ public interface OwnershipFilter extends Predicate<OwnershipContext> {
         );
     }
 
-    static OwnershipFilter isNotOwnedBy(final String desiredOwner) {
+    static ClassOwnershipFilter isNotOwnedBy(final String desiredOwner) {
         return isOwnedBy(desiredOwner).negate();
     }
 
-    static OwnershipFilter isOwnedBy(final String desiredOwner) {
+    static ClassOwnershipFilter isOwnedBy(final String desiredOwner) {
         return named(
             context -> Objects.equals(context.getClassOwnership()
                                              .getClassOwner(), desiredOwner),
@@ -62,17 +63,17 @@ public interface OwnershipFilter extends Predicate<OwnershipContext> {
         );
     }
 
-    static OwnershipFilter hasDependenciesOwnedBy(final String desiredOwner) {
+    static ClassOwnershipFilter hasDependenciesOwnedBy(final String desiredOwner) {
         return hasDependenciesThat(isOwnedBy(desiredOwner))
             .named("has dependencies owned by " + desiredOwner);
     }
 
-    static OwnershipFilter hasDependenciesWithOwnerOtherThan(final String undesiredOwner) {
+    static ClassOwnershipFilter hasDependenciesWithOwnerOtherThan(final String undesiredOwner) {
         return hasDependenciesThat(isNotOwnedBy(undesiredOwner))
             .named("has dependencies with owner other than " + undesiredOwner);
     }
 
-    static OwnershipFilter hasDependenciesThat(final OwnershipFilter dependencyFilter) {
+    static ClassOwnershipFilter hasDependenciesThat(final ClassOwnershipFilter dependencyFilter) {
         return named(
             context -> context.getClassOwnership()
                               .getDependencyOwnershipsStream()
@@ -86,17 +87,17 @@ public interface OwnershipFilter extends Predicate<OwnershipContext> {
         );
     }
 
-    static OwnershipFilter hasMethodsOwnedBy(final String desiredOwner) {
+    static ClassOwnershipFilter hasMethodsOwnedBy(final String desiredOwner) {
         return hasMethodsWithOwnerThat(methodOwner -> Objects.equals(methodOwner, desiredOwner))
             .named("has methods owned by " + desiredOwner);
     }
 
-    static OwnershipFilter hasMethodsWithOwnerOtherThan(final String undesiredOwner) {
+    static ClassOwnershipFilter hasMethodsWithOwnerOtherThan(final String undesiredOwner) {
         return hasMethodsWithOwnerThat(methodOwner -> !Objects.equals(methodOwner, undesiredOwner))
             .named("has methods with owner other than " + undesiredOwner);
     }
 
-    static OwnershipFilter hasMethodsWithOwnerThat(final Predicate<String> ownerPredicate) {
+    static ClassOwnershipFilter hasMethodsWithOwnerThat(final Predicate<String> ownerPredicate) {
         return named(
             context -> context.getClassOwnership()
                               .getMethodOwners()
@@ -107,7 +108,7 @@ public interface OwnershipFilter extends Predicate<OwnershipContext> {
         );
     }
 
-    static OwnershipFilter isADependencyOfAClassThat(final OwnershipFilter dependentFilter) {
+    static ClassOwnershipFilter isADependencyOfAClassThat(final ClassOwnershipFilter dependentFilter) {
         return named(
             context -> context.getDomainOwnership()
                               .stream()
@@ -123,25 +124,26 @@ public interface OwnershipFilter extends Predicate<OwnershipContext> {
         );
     }
 
-    default OwnershipFilter negate() {
+    default ClassOwnershipFilter negate() {
         return named(context -> !this.test(context), "not " + this);
     }
 
-    default OwnershipFilter and(final OwnershipFilter another) {
+    default ClassOwnershipFilter and(final ClassOwnershipFilter another) {
         return composeWith(another, Boolean::logicalAnd).named("(" + this + " and " + another + ')');
     }
 
-    default OwnershipFilter or(final OwnershipFilter another) {
+    default ClassOwnershipFilter or(final ClassOwnershipFilter another) {
         return composeWith(another, Boolean::logicalOr).named("(" + this + " or " + another + ')');
     }
 
-    default OwnershipFilter composeWith(final OwnershipFilter another, final BinaryOperator<Boolean> operator) {
+    default ClassOwnershipFilter composeWith(final ClassOwnershipFilter another,
+                                             final BinaryOperator<Boolean> operator) {
         return context -> operator.apply(this.test(context), another.test(context));
     }
 
     /**
      * The complexity of some filters might not be optimal when a large classpath is plotted. For example {@link
-     * #isADependencyOfAClassThat(OwnershipFilter) isADependencyOfAClassThat} scans the entire {@link
+     * #isADependencyOfAClassThat(ClassOwnershipFilter) isADependencyOfAClassThat} scans the entire {@link
      * OwnershipContext#getDomainOwnership() domain ownership} for each {@link ClassOwnership} given. When a filter is
      * cached, it will always respond with the same result given the same {@link ClassOwnership}. The cache ignores the
      * {@link OwnershipContext#getDomainOwnership() domain ownership} completely, making it not appropriate to use when
@@ -151,7 +153,7 @@ public interface OwnershipFilter extends Predicate<OwnershipContext> {
      *
      * @return a cached version of this filter
      */
-    default OwnershipFilter cached() {
+    default ClassOwnershipFilter cached() {
         final ConcurrentHashMap<ClassOwnership, Boolean> cache = new ConcurrentHashMap<>();
         return named(
             ownershipContext -> cache.computeIfAbsent(
@@ -171,8 +173,8 @@ public interface OwnershipFilter extends Predicate<OwnershipContext> {
      *
      * @return a debugged version of this filter
      */
-    default OwnershipFilter debugged() {
-        final Logger log = LoggerFactory.getLogger(OwnershipFilter.class);
+    default ClassOwnershipFilter debugged() {
+        final Logger log = LoggerFactory.getLogger(ClassOwnershipFilter.class);
         final AtomicInteger filteredClasses = new AtomicInteger(0);
         final AtomicInteger percentageSoFar = new AtomicInteger(0);
         final AtomicLong highestFilteringTimeMillis = new AtomicLong(0);
@@ -224,22 +226,26 @@ public interface OwnershipFilter extends Predicate<OwnershipContext> {
         );
     }
 
-    default OwnershipFilter named(final String filterName) {
-        final OwnershipFilter self = this;
-        return new OwnershipFilter() {
+    default ClassOwnershipFilter named(final String filterName) {
+        return named(() -> filterName);
+    }
+
+    default ClassOwnershipFilter named(final Supplier<String> filterNameSupplier) {
+        final ClassOwnershipFilter self = this;
+        return new ClassOwnershipFilter() {
             @Override
-            public final boolean test(OwnershipContext ownershipContext) {
+            public final boolean test(final OwnershipContext ownershipContext) {
                 return self.test(ownershipContext);
             }
 
             @Override
             public final String toString() {
-                return filterName;
+                return filterNameSupplier.get();
             }
         };
     }
 
-    static OwnershipFilter named(final OwnershipFilter filter, final String filterName) {
+    static ClassOwnershipFilter named(final ClassOwnershipFilter filter, final String filterName) {
         return filter.named(filterName);
     }
 
