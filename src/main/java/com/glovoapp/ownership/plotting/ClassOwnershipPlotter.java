@@ -5,7 +5,6 @@ import static java.util.stream.Collectors.toSet;
 import com.glovoapp.ownership.ClassOwnership;
 import com.glovoapp.ownership.ClassOwnershipExtractor;
 import com.glovoapp.ownership.classpath.ClasspathLoader;
-import com.glovoapp.ownership.plotting.OwnershipFilter.OwnershipContext;
 import java.io.FileOutputStream;
 import java.util.Optional;
 import java.util.Set;
@@ -21,7 +20,7 @@ public final class ClassOwnershipPlotter {
 
     private final ClasspathLoader classpathLoader;
     private final ClassOwnershipExtractor extractor;
-    private final OwnershipFilter filter;
+    private final DomainOwnershipFilter filter;
     private final DiagramDataPipeline diagramDataPipeline;
 
     /**
@@ -64,11 +63,7 @@ public final class ClassOwnershipPlotter {
                                                               .map(Optional::get)
                                                               .collect(Collectors.toSet());
 
-        return fullDomainOwnership.stream()
-                                  .filter(
-                                      ownership -> filter.test(new OwnershipContext(ownership, fullDomainOwnership))
-                                  )
-                                  .collect(toSet());
+        return filter.apply(fullDomainOwnership);
     }
 
 }
