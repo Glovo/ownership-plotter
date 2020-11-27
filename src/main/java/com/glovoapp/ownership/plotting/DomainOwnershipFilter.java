@@ -6,9 +6,8 @@ import static java.util.stream.Collectors.toSet;
 
 import com.glovoapp.ownership.ClassOwnership;
 import com.glovoapp.ownership.plotting.ClassOwnershipFilter.OwnershipContext;
-import java.util.ArrayList;
+import com.glovoapp.ownership.shared.Sets;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -35,23 +34,11 @@ public interface DomainOwnershipFilter extends UnaryOperator<Set<ClassOwnership>
      */
     default DomainOwnershipFilter parallelized(final ExecutorService executorService,
                                                final int partitionsCount) {
-        if (partitionsCount < 1) {
-            throw new IllegalArgumentException("partitions count must be greater than 0");
-        }
         requireNonNull(executorService, "executor service must not be null");
 
         final DomainOwnershipFilter self = this;
         return domainOwnership -> {
-            final List<Set<ClassOwnership>> partitionedOwnerships = new ArrayList<>(partitionsCount);
-            for (int i = 0; i < partitionsCount; ++i) {
-                partitionedOwnerships.add(new HashSet<>());
-            }
-
-            int index = 0;
-            for (ClassOwnership object : domainOwnership) {
-                partitionedOwnerships.get(index++ % partitionsCount)
-                                     .add(object);
-            }
+            final List<Set<ClassOwnership>> partitionedOwnerships = Sets.partition(domainOwnership, partitionsCount);
 
             try {
                 return executorService

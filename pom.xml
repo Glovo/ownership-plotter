@@ -6,7 +6,7 @@
 
   <groupId>com.glovoapp</groupId>
   <artifactId>ownership-plotter</artifactId>
-  <version>7.0-SNAPSHOT</version>
+  <version>7.1-SNAPSHOT</version>
 
   <properties>
     <java.version>8</java.version>
