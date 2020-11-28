@@ -13,10 +13,7 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BinaryOperator;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -186,7 +183,7 @@ public interface ClassOwnershipFilter extends Predicate<OwnershipContext> {
             ownershipContext -> {
                 final int domainOwnershipSize = ownershipContext.getDomainOwnership()
                                                                 .size();
-                final Callback progressCallback = progressCallbackReference.get(() ->
+                final Callback progressCallback = progressCallbackReference.initializeAndGet(() ->
                     ProgressWindow.start(
                         "filtering progress of " + this,
                         domainOwnershipSize

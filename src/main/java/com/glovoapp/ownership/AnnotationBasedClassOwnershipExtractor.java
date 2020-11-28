@@ -2,6 +2,7 @@ package com.glovoapp.ownership;
 
 import static java.util.stream.Collectors.toMap;
 
+import com.glovoapp.ownership.shared.LazyReference;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -34,11 +35,11 @@ public final class AnnotationBasedClassOwnershipExtractor implements ClassOwners
                                                                    )
                         ));
 
-            final Map<Field, Supplier<Optional<ClassOwnership>>> dependenciesOwnership
+            final Map<Field, LazyReference<Optional<ClassOwnership>>> dependenciesOwnership
                 = Arrays.stream(aClass.getDeclaredFields())
                         .collect(toMap(
                             field -> field,
-                            field -> () -> getOwnershipOf(field.getType())
+                            field -> new LazyReference<>(() -> getOwnershipOf(field.getType()))
                         ));
 
             return Optional.of(new ClassOwnership(aClass, classOwner, methodOwners, dependenciesOwnership));

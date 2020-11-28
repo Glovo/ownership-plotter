@@ -1,5 +1,6 @@
 package com.glovoapp.ownership;
 
+import com.glovoapp.ownership.shared.LazyReference;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.AbstractMap.SimpleEntry;
@@ -7,7 +8,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.function.Function;
-import java.util.function.Supplier;
 import java.util.stream.Stream;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -25,7 +25,7 @@ public final class ClassOwnership {
     private final Class<?> theClass;
     private final String classOwner;
     private final Map<Method, String> methodOwners;
-    private final Map<Field, Supplier<Optional<ClassOwnership>>> dependenciesOwnership;
+    private final Map<Field, LazyReference<Optional<ClassOwnership>>> dependenciesOwnership;
 
     private static <K, V, T> Entry<K, T> mapValue(final Entry<K, V> entry, final Function<V, T> valueMapper) {
         return new SimpleEntry<>(entry.getKey(), valueMapper.apply(entry.getValue()));
@@ -35,7 +35,7 @@ public final class ClassOwnership {
         return dependenciesOwnership.entrySet()
                                     .stream()
 
-                                    .map(entry -> mapValue(entry, Supplier::get))
+                                    .map(entry -> mapValue(entry, LazyReference::get))
                                     .filter(entry -> entry.getValue()
                                                           .isPresent())
                                     .map(entry -> mapValue(entry, Optional::get));
