@@ -56,11 +56,11 @@ class ClassOwnershipPlotterTest {
                     define(ExampleOwnershipAnnotation.class, ExampleOwnershipAnnotation::owner)
                 )
             ),
-            DomainOwnershipFilter.simple(filter)
-                                 .parallelized(
-                                     newFixedThreadPool(4),
-                                     4
-                                 ),
+            DomainOwnershipFilter.parallelized(
+                filter,
+                newFixedThreadPool(4),
+                4
+            ),
             pipelineForFile(FileFormat.SVG, defaultDiagramConfiguration())
         );
     }
