@@ -47,11 +47,11 @@ public interface DomainOwnershipFilter extends UnaryOperator<Set<ClassOwnership>
                         partitionedOwnerships.stream()
                                              .map(ownerships ->
                                                  (Callable<Set<ClassOwnership>>) () ->
-                                                     domainOwnership.stream()
-                                                                    .filter(ownership -> filter.test(
-                                                                        new OwnershipContext(ownership, domainOwnership)
-                                                                    ))
-                                                                    .collect(toSet())
+                                                     ownerships.stream()
+                                                               .filter(ownership -> filter.test(
+                                                                   new OwnershipContext(ownership, domainOwnership)
+                                                               ))
+                                                               .collect(toSet())
                                              )
                                              .collect(toList())
                     )
