@@ -44,7 +44,7 @@ class ClassOwnershipPlotterTest {
                 )
                 .and(
                     isADependencyOfAClassThat(isARelevantClassOfDesiredOwner)
-                )
+                ).debugged()
         ).writeDiagramOfClasspathToFile(GLOVO_PACKAGE, "/tmp/test-team-a.svg");
     }
 
