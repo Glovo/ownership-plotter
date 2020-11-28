@@ -4,13 +4,15 @@ import java.util.function.Supplier;
 
 public final class SingletonReference<T> {
 
-    private volatile T object = null;
+    private volatile boolean hasBeenInitialized = false;
+    private volatile T value;
 
-    public final synchronized T get(final Supplier<T> supplier) {
-        if (object == null) {
-            object = supplier.get();
+    public final synchronized T initializeAndGet(final Supplier<T> supplier) {
+        if (!hasBeenInitialized) {
+            value = supplier.get();
+            hasBeenInitialized = true;
         }
-        return object;
+        return value;
     }
 
 }
