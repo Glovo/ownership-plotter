@@ -5,13 +5,18 @@ import static lombok.AccessLevel.PACKAGE;
 
 import com.glovoapp.ownership.ClassOwnership;
 import com.glovoapp.ownership.plotting.ClassOwnershipFilter.OwnershipContext;
+import com.glovoapp.ownership.shared.ProgressWindow;
+import com.glovoapp.ownership.shared.ProgressWindow.Callback;
+import com.glovoapp.ownership.shared.SingletonReference;
 import java.util.Collection;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BinaryOperator;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -175,13 +180,18 @@ public interface ClassOwnershipFilter extends Predicate<OwnershipContext> {
      */
     default ClassOwnershipFilter debugged() {
         final Logger log = LoggerFactory.getLogger(ClassOwnershipFilter.class);
-        final AtomicInteger filteredClasses = new AtomicInteger(0);
-        final AtomicInteger percentageSoFar = new AtomicInteger(0);
+        final SingletonReference<Callback> progressCallbackReference = new SingletonReference<>();
         final AtomicLong highestFilteringTimeMillis = new AtomicLong(0);
         return named(
             ownershipContext -> {
                 final int domainOwnershipSize = ownershipContext.getDomainOwnership()
                                                                 .size();
+                final Callback progressCallback = progressCallbackReference.get(() ->
+                    ProgressWindow.start(
+                        "filtering progress of " + this,
+                        domainOwnershipSize
+                    )
+                );
 
                 final long startTime = currentTimeMillis();
                 final boolean result = this.test(ownershipContext);
@@ -204,22 +214,7 @@ public interface ClassOwnershipFilter extends Predicate<OwnershipContext> {
                     }
                 });
 
-                filteredClasses.updateAndGet(filteredClassesCount -> {
-                    final int currentFilteredClassesCount = filteredClassesCount + 1;
-                    final int oldPercentage = percentageSoFar.get();
-                    final int newPercentage = (currentFilteredClassesCount * 100) / domainOwnershipSize;
-                    percentageSoFar.set(newPercentage);
-                    if (newPercentage != oldPercentage) {
-                        log.info(
-                            "{} filtered {}% ({}/{} classes) so far",
-                            this,
-                            newPercentage,
-                            currentFilteredClassesCount,
-                            domainOwnershipSize
-                        );
-                    }
-                    return currentFilteredClassesCount;
-                });
+                progressCallback.incrementPerformedOperations();
                 return result;
             },
             "DEBUGGED[" + this + ']'
