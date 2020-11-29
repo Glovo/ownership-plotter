@@ -81,7 +81,8 @@ public final class ProgressWindow extends JFrame {
                 ProgressWindow.this.progressBar.setValue((int) currentPercentage);
                 final long timeNow = currentTimeMillis();
                 final long elapsedTime = timeNow - startTimeMillis;
-                final long estimatedRemainingMillis = (elapsedTime * totalOperationsCount) / currentOperationsCount;
+                final long estimatedRemainingMillis
+                    = (elapsedTime * totalOperationsCount) / currentOperationsCount - elapsedTime;
                 progressText.setText(
                     "Estimated time to completion: " + formatDurationMillis(estimatedRemainingMillis)
                 );
@@ -93,11 +94,12 @@ public final class ProgressWindow extends JFrame {
             final long hours = timeSeconds / 3_600;
             final long minutes = (timeSeconds % 3_600) / 60;
             final long seconds = timeSeconds % 60;
-            return join(" ",
+            final String result = join(" ",
                 (hours > 0 ? hours + "h" : ""),
                 (minutes > 0 ? minutes + "m" : ""),
                 (seconds > 0 ? seconds + "s" : "")
             );
+            return result.isEmpty() ? "none" : result;
         }
 
     }
