@@ -6,7 +6,6 @@ import static java.lang.System.currentTimeMillis;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 import java.awt.Font;
-import java.awt.Graphics;
 import java.awt.GridLayout;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicLong;
@@ -55,7 +54,7 @@ public final class ProgressWindow extends JFrame {
     private static final class LabelWithDynamicTextSize extends JLabel {
 
         @Override
-        public final void paint(final Graphics graphics) {
+        public final void validate() {
             final Font labelFont = getFont();
             final String labelText = getText();
             final int stringWidth = getFontMetrics(labelFont).stringWidth(labelText);
@@ -67,8 +66,9 @@ public final class ProgressWindow extends JFrame {
 
             setFont(new Font(labelFont.getName(), Font.PLAIN, fontSizeToUse));
 
-            super.paint(graphics);
+            super.validate();
         }
+
     }
 
     public final class Callback {
