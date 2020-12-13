@@ -1,18 +1,16 @@
 package com.glovoapp.ownership.shared;
 
+import lombok.SneakyThrows;
+
+import javax.swing.*;
+import java.awt.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicLong;
+
 import static java.awt.EventQueue.invokeLater;
 import static java.lang.String.join;
 import static java.lang.System.currentTimeMillis;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
-
-import java.awt.Font;
-import java.awt.GridLayout;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.atomic.AtomicLong;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JProgressBar;
-import lombok.SneakyThrows;
 
 public final class ProgressWindow extends JFrame {
 
@@ -20,6 +18,7 @@ public final class ProgressWindow extends JFrame {
     private final long totalOperationsCount;
     private final AtomicLong performedOperationsCount = new AtomicLong(0);
     private final JProgressBar progressBar = new JProgressBar(0, 100);
+    private final JLabel operationDescriptionText = new LabelWithDynamicTextSize();
     private final JLabel progressText = new LabelWithDynamicTextSize();
 
     @SneakyThrows
@@ -40,12 +39,13 @@ public final class ProgressWindow extends JFrame {
 
         setVisible(true);
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-        setLayout(new GridLayout(2, 1));
+        setLayout(new GridLayout(3, 1));
 
         add(progressBar);
         progressBar.setValue(0);
         progressBar.setStringPainted(true);
 
+        add(operationDescriptionText);
         add(progressText);
 
         callbackFuture.complete(new Callback());
@@ -73,6 +73,14 @@ public final class ProgressWindow extends JFrame {
 
     public final class Callback {
 
+        public final void setCurrentOperationDescription(final String newCurrentOperationDescription) {
+            operationDescriptionText.setText(newCurrentOperationDescription);
+        }
+
+        public final void markOperationAsComplete() {
+            ProgressWindow.this.dispose();
+        }
+
         public final void incrementPerformedOperations() {
             long currentOperationsCount = performedOperationsCount.incrementAndGet();
             long oldPercentage = ((currentOperationsCount - 1) * 100) / totalOperationsCount;
@@ -82,9 +90,9 @@ public final class ProgressWindow extends JFrame {
                 final long timeNow = currentTimeMillis();
                 final long elapsedTime = timeNow - startTimeMillis;
                 final long estimatedRemainingMillis
-                    = (elapsedTime * totalOperationsCount) / currentOperationsCount - elapsedTime;
+                        = (elapsedTime * totalOperationsCount) / currentOperationsCount - elapsedTime;
                 progressText.setText(
-                    "Estimated time to completion: " + formatDurationMillis(estimatedRemainingMillis)
+                        "Estimated time to completion: " + formatDurationMillis(estimatedRemainingMillis)
                 );
             }
         }
@@ -95,9 +103,9 @@ public final class ProgressWindow extends JFrame {
             final long minutes = (timeSeconds % 3_600) / 60;
             final long seconds = timeSeconds % 60;
             final String result = join(" ",
-                (hours > 0 ? hours + "h" : ""),
-                (minutes > 0 ? minutes + "m" : ""),
-                (seconds > 0 ? seconds + "s" : "")
+                    (hours > 0 ? hours + "h" : ""),
+                    (minutes > 0 ? minutes + "m" : ""),
+                    (seconds > 0 ? seconds + "s" : "")
             );
             return result.isEmpty() ? "none" : result;
         }
