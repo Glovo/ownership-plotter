@@ -14,7 +14,7 @@ import org.junit.jupiter.api.Test;
 class AnnotationBasedClassOwnershipExtractorTest {
 
     private final AnnotationBasedClassOwnershipExtractor extractor = new AnnotationBasedClassOwnershipExtractor(
-        define(ExampleOwnershipAnnotation.class)
+        define(ExampleOwnershipAnnotation.class, ExampleOwnershipAnnotation::owner)
     );
 
     @Test

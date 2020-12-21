@@ -22,7 +22,7 @@ class CachedClassOwnershipExtractorTest {
     void getOwnershipOf_shouldReturnTheSameOwnership_forTheSameClass() {
         final Class<ExampleClassWithOwner> exampleClass = ExampleClassWithOwner.class;
         final Optional<ClassOwnership> ownership = Optional.of(
-            new ClassOwnership(null, exampleClass, EXAMPLE_OWNER.name(), emptyMap(), emptyMap())
+            new ClassOwnership(null, exampleClass, EXAMPLE_OWNER.name(), emptyMap(), emptyMap(), emptyMap(), emptyMap())
         );
         when(delegateMock.getOwnershipOf(exampleClass)).thenReturn(ownership);
 
