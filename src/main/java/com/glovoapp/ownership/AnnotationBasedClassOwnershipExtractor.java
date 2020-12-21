@@ -1,6 +1,7 @@
 package com.glovoapp.ownership;
 
-import static java.util.Collections.emptyMap;
+import static com.glovoapp.ownership.shared.Maps.transformValues;
+import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toMap;
 
 import com.glovoapp.ownership.OwnershipAnnotationDefinition.OwnershipData;
@@ -8,6 +9,7 @@ import com.glovoapp.ownership.shared.LazyReference;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -22,21 +24,17 @@ public final class AnnotationBasedClassOwnershipExtractor implements ClassOwners
     @Override
     public final Optional<ClassOwnership> getOwnershipOf(final Class<?> aClass) {
         try {
-            final String classOwner = ownershipAnnotationDefinition.getOwnershipData(aClass)
-                                                                   .map(OwnershipData::getOwner)
-                                                                   .orElse(null);
+            final Optional<OwnershipData> classOwner = ownershipAnnotationDefinition.getOwnershipData(aClass);
 
-            final Map<Method, String> methodOwners
+            final Map<Method, OwnershipData> methodOwners
                 = Arrays.stream(aClass.getDeclaredMethods())
                         .filter(ownershipAnnotationDefinition::hasOwner)
                         .collect(toMap(
-                            method -> method,
+                            identity(),
                             method -> ownershipAnnotationDefinition.getOwnershipData(method)
-                                                                   .map(OwnershipData::getOwner)
-                                                                   .orElseThrow(() ->
-                                                                       new RuntimeException("this should never happen")
-                                                                   )
-                        ));
+                                                                   .orElseThrow(() -> new IllegalStateException(
+                                                                       "this should never happen"
+                                                                   ))));
 
             final Map<Field, LazyReference<Optional<ClassOwnership>>> dependenciesOwnership
                 = Arrays.stream(aClass.getDeclaredFields())
@@ -48,10 +46,12 @@ public final class AnnotationBasedClassOwnershipExtractor implements ClassOwners
             return Optional.of(new ClassOwnership(
                 getClass(),
                 aClass,
-                classOwner,
-                emptyMap(),
-                methodOwners,
-                emptyMap(),
+                classOwner.map(OwnershipData::getOwner)
+                          .orElse(null),
+                classOwner.map(OwnershipData::getMetaData)
+                          .orElseGet(Collections::emptyMap),
+                transformValues(methodOwners, OwnershipData::getOwner),
+                transformValues(methodOwners, OwnershipData::getMetaData),
                 dependenciesOwnership
             ));
         } catch (final NoClassDefFoundError error) {
