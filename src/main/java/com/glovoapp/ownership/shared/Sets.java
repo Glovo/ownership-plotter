@@ -1,16 +1,25 @@
 package com.glovoapp.ownership.shared;
 
 import static java.util.Collections.unmodifiableList;
+import static java.util.stream.Collectors.toSet;
 import static lombok.AccessLevel.PRIVATE;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Stream;
 import lombok.NoArgsConstructor;
 
 @NoArgsConstructor(access = PRIVATE)
 public final class Sets {
+
+    public static <T> Set<T> union(final Set<T> first, final Set<T> second) {
+        return Stream.concat(
+            first.stream(),
+            second.stream()
+        ).collect(toSet());
+    }
 
     /**
      * Splits given {@link Set} into multiple subsets.

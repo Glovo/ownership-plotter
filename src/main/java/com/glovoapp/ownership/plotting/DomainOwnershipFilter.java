@@ -6,7 +6,6 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
 import com.glovoapp.ownership.ClassOwnership;
-import com.glovoapp.ownership.plotting.ClassOwnershipFilter.OwnershipContext;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;

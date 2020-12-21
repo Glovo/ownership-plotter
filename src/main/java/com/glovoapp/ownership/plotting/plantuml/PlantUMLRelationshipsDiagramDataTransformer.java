@@ -21,14 +21,14 @@ import lombok.extern.slf4j.Slf4j;
 import net.sourceforge.plantuml.SourceStringReader;
 
 @Slf4j
-public final class PlantUMLDiagramDataTransformer implements DiagramDataTransformer<SourceStringReader> {
+public final class PlantUMLRelationshipsDiagramDataTransformer implements DiagramDataTransformer<SourceStringReader> {
 
     private final DiagramConfiguration diagramConfiguration;
 
     /**
      * @param diagramConfiguration global diagram settings
      */
-    public PlantUMLDiagramDataTransformer(final DiagramConfiguration diagramConfiguration) {
+    public PlantUMLRelationshipsDiagramDataTransformer(final DiagramConfiguration diagramConfiguration) {
         this.diagramConfiguration = diagramConfiguration;
     }
 
