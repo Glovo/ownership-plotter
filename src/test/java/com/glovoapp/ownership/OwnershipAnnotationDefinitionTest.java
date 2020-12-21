@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
+import com.glovoapp.ownership.OwnershipAnnotationDefinition.OwnershipData;
 import com.glovoapp.ownership.examples.AnotherExampleOwnershipAnnotation;
 import com.glovoapp.ownership.examples.ExampleClassWithAnotherOwnershipAnnotation;
 import com.glovoapp.ownership.examples.ExampleClassWithBothOwnershipAnnotations;
@@ -26,7 +27,8 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 class OwnershipAnnotationDefinitionTest {
 
-    private final OwnershipAnnotationDefinition definition = define(ExampleOwnershipAnnotation.class);
+    private final OwnershipAnnotationDefinition definition
+        = define(ExampleOwnershipAnnotation.class, ExampleOwnershipAnnotation::owner);
 
     @SneakyThrows
     static Stream<Arguments> annotatedElementsAndExpectedOwners() {
@@ -42,30 +44,43 @@ class OwnershipAnnotationDefinitionTest {
 
     @Test
     void or_shouldReturnADefinitionThatAllowsFetchingOwnerWithAnotherAnnotation() {
-        OwnershipAnnotationDefinition newDefinition = definition.or(define(AnotherExampleOwnershipAnnotation.class));
-        final Optional<String> owner = newDefinition.getOwner(ExampleClassWithAnotherOwnershipAnnotation.class);
+        OwnershipAnnotationDefinition newDefinition = definition.or(define(
+            AnotherExampleOwnershipAnnotation.class, AnotherExampleOwnershipAnnotation::owner
+        ));
+        final Optional<OwnershipData> owner = newDefinition.getOwnershipData(
+            ExampleClassWithAnotherOwnershipAnnotation.class);
         assertTrue(owner.isPresent());
-        assertEquals(EXAMPLE_OWNER.name(), owner.get());
+        assertEquals(EXAMPLE_OWNER.name(), owner.get()
+                                                .getOwner());
     }
 
     @Test
     void or_shouldReturnADefinitionThatUsesFirstAnnotationAsPriority() {
-        OwnershipAnnotationDefinition anotherDefinition = define(AnotherExampleOwnershipAnnotation.class);
+        OwnershipAnnotationDefinition anotherDefinition = define(
+            AnotherExampleOwnershipAnnotation.class, AnotherExampleOwnershipAnnotation::owner
+        );
         OwnershipAnnotationDefinition newDefinition = definition.or(anotherDefinition);
-        Optional<String> owner = newDefinition.getOwner(ExampleClassWithBothOwnershipAnnotations.class);
+        Optional<OwnershipData> owner = newDefinition.getOwnershipData(ExampleClassWithBothOwnershipAnnotations.class);
         assertTrue(owner.isPresent());
-        assertEquals(TEAM_A.name(), owner.get());
+        assertEquals(TEAM_A.name(), owner.get()
+                                         .getOwner());
 
         OwnershipAnnotationDefinition reversedDefinition = anotherDefinition.or(definition);
-        Optional<String> anotherOwner = reversedDefinition.getOwner(ExampleClassWithBothOwnershipAnnotations.class);
+        Optional<OwnershipData> anotherOwner = reversedDefinition.getOwnershipData(
+            ExampleClassWithBothOwnershipAnnotations.class);
         assertTrue(anotherOwner.isPresent());
-        assertEquals(TEAM_B.name(), anotherOwner.get());
+        assertEquals(TEAM_B.name(), anotherOwner.get()
+                                                .getOwner());
     }
 
     @ParameterizedTest
     @MethodSource("annotatedElementsAndExpectedOwners")
     void getOwner_shouldReturnOwnerOfAClass(final AnnotatedElement element, final String expectedOwner) {
-        assertEquals(Optional.ofNullable(expectedOwner), definition.getOwner(element));
+        assertEquals(
+            Optional.ofNullable(expectedOwner),
+            definition.getOwnershipData(element)
+                      .map(OwnershipData::getOwner)
+        );
     }
 
 }

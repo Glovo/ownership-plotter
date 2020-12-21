@@ -26,7 +26,9 @@ public final class ClassOwnership {
     private final Class<? extends ClassOwnershipExtractor> extractorClass;
     private final Class<?> theClass;
     private final String classOwner;
+    private final Map<String, ?> metaData;
     private final Map<Method, String> methodOwners;
+    private final Map<Method, Map<String, ?>> methodMetaData;
     private final Map<Field, LazyReference<Optional<ClassOwnership>>> dependenciesOwnership;
 
     public final Stream<Entry<Field, ClassOwnership>> getDependencyOwnershipsStream() {

@@ -16,13 +16,17 @@ class ClassOwnershipTest {
         final ClassOwnershipExtractor someExtractor = new ClassOwnershipExtractor() {
             @Override
             public final Optional<ClassOwnership> getOwnershipOf(final Class<?> theClass) {
-                return Optional.of(new ClassOwnership(getClass(), theClass, null, emptyMap(), emptyMap()));
+                return Optional.of(
+                    new ClassOwnership(getClass(), theClass, null, emptyMap(), emptyMap(), emptyMap(), emptyMap())
+                );
             }
         };
         final ClassOwnershipExtractor someOtherExtractor = new ClassOwnershipExtractor() {
             @Override
             public final Optional<ClassOwnership> getOwnershipOf(final Class<?> theClass) {
-                return Optional.of(new ClassOwnership(getClass(), theClass, null, emptyMap(), emptyMap()));
+                return Optional.of(
+                    new ClassOwnership(getClass(), theClass, null, emptyMap(), emptyMap(), emptyMap(), emptyMap())
+                );
             }
         };
 
@@ -42,7 +46,9 @@ class ClassOwnershipTest {
         final ClassOwnershipExtractor someExtractor = new ClassOwnershipExtractor() {
             @Override
             public final Optional<ClassOwnership> getOwnershipOf(final Class<?> theClass) {
-                return Optional.of(new ClassOwnership(getClass(), theClass, null, emptyMap(), emptyMap()));
+                return Optional.of(
+                    new ClassOwnership(getClass(), theClass, null, emptyMap(), emptyMap(), emptyMap(), emptyMap())
+                );
             }
         };
 
@@ -57,9 +63,9 @@ class ClassOwnershipTest {
         final ClassOwnershipExtractor someExtractor = new ClassOwnershipExtractor() {
             @Override
             public final Optional<ClassOwnership> getOwnershipOf(final Class<?> theClass) {
-                return Optional.of(
-                    new ClassOwnership(getClass(), theClass, randomUUID().toString(), emptyMap(), emptyMap())
-                );
+                return Optional.of(new ClassOwnership(
+                    getClass(), theClass, randomUUID().toString(), emptyMap(), emptyMap(), emptyMap(), emptyMap()
+                ));
             }
         };
 
