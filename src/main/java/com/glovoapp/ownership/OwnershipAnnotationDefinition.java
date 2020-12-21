@@ -2,6 +2,7 @@ package com.glovoapp.ownership;
 
 import static java.util.Collections.emptyMap;
 import static lombok.AccessLevel.PACKAGE;
+import static lombok.AccessLevel.PRIVATE;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
@@ -71,7 +72,7 @@ public interface OwnershipAnnotationDefinition {
     }
 
     @Getter(PACKAGE)
-    @RequiredArgsConstructor(access = PACKAGE)
+    @RequiredArgsConstructor(access = PRIVATE)
     final class OwnershipData {
 
         private final String owner;
