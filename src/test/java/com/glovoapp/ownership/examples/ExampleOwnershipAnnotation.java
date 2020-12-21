@@ -13,4 +13,6 @@ public @interface ExampleOwnershipAnnotation {
 
     ExampleOwner owner();
 
+    ExampleFeature[] features() default {};
+
 }

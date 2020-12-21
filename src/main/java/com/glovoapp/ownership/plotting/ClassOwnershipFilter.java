@@ -1,14 +1,13 @@
 package com.glovoapp.ownership.plotting;
 
 import static java.lang.System.currentTimeMillis;
-import static lombok.AccessLevel.PACKAGE;
 
 import com.glovoapp.ownership.ClassOwnership;
-import com.glovoapp.ownership.plotting.ClassOwnershipFilter.OwnershipContext;
 import com.glovoapp.ownership.shared.ProgressWindow;
 import com.glovoapp.ownership.shared.ProgressWindow.Callback;
 import com.glovoapp.ownership.shared.SingletonReference;
 import java.util.Collection;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
@@ -18,8 +17,6 @@ import java.util.function.BinaryOperator;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -82,7 +79,7 @@ public interface ClassOwnershipFilter extends Predicate<OwnershipContext> {
                               .map(Entry::getValue)
                               .anyMatch(dependencyOwnership ->
                                   dependencyFilter.test(
-                                      new OwnershipContext(dependencyOwnership, context.domainOwnership)
+                                      new OwnershipContext(dependencyOwnership, context.getDomainOwnership())
                                   )
                               ),
             "has dependencies that (" + dependencyFilter + ')'
@@ -116,13 +113,59 @@ public interface ClassOwnershipFilter extends Predicate<OwnershipContext> {
                               .stream()
                               .filter(dependentOwnership ->
                                   dependentFilter.test(
-                                      new OwnershipContext(dependentOwnership, context.domainOwnership)
+                                      new OwnershipContext(dependentOwnership, context.getDomainOwnership())
                                   )
                               )
                               .anyMatch(ownership -> ownership.getDependencyOwnershipsStream()
                                                               .map(Entry::getValue)
                                                               .anyMatch(context.getClassOwnership()::equals)),
             "is a dependency of a class that " + dependentFilter
+        );
+    }
+
+    static ClassOwnershipFilter hasMetaDataElementNamed(final String metaDataElementName) {
+        return named(
+            context -> context.getClassOwnership()
+                              .getMetaData()
+                              .containsKey(metaDataElementName),
+            "has " + metaDataElementName + " meta data element"
+        );
+    }
+
+    static ClassOwnershipFilter hasMethodsWithMetaDataElementNamed(final String methodMetaDataElementName) {
+        return named(
+            context -> context.getClassOwnership()
+                              .getMethodMetaData()
+                              .values()
+                              .stream()
+                              .anyMatch(methodMetaData -> methodMetaData.containsKey(methodMetaDataElementName)),
+            "has methods with " + methodMetaDataElementName + " meta data element"
+        );
+    }
+
+    static ClassOwnershipFilter hasMetaDataElementThat(final Predicate<Map.Entry<String, ?>> metaDataElementPredicate) {
+        return named(
+            context -> context.getClassOwnership()
+                              .getMetaData()
+                              .entrySet()
+                              .stream()
+                              .anyMatch(metaDataElementPredicate),
+            "has meta data element matching " + metaDataElementPredicate
+        );
+    }
+
+    static ClassOwnershipFilter hasMethodsWithMetaDataElementThat(
+        final Predicate<Map.Entry<String, ?>> methodMetaDataElementPredicate
+    ) {
+        return named(
+            context -> context.getClassOwnership()
+                              .getMethodMetaData()
+                              .values()
+                              .stream()
+                              .map(Map::entrySet)
+                              .flatMap(Collection::stream)
+                              .anyMatch(methodMetaDataElementPredicate),
+            "has methods with meta data element matching " + methodMetaDataElementPredicate
         );
     }
 
@@ -239,15 +282,6 @@ public interface ClassOwnershipFilter extends Predicate<OwnershipContext> {
 
     static ClassOwnershipFilter named(final ClassOwnershipFilter filter, final String filterName) {
         return filter.named(filterName);
-    }
-
-    @Getter
-    @RequiredArgsConstructor(access = PACKAGE)
-    final class OwnershipContext {
-
-        private final ClassOwnership classOwnership;
-        private final Collection<ClassOwnership> domainOwnership;
-
     }
 
 }

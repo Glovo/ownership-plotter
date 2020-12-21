@@ -9,10 +9,18 @@ import net.sourceforge.plantuml.FileFormat;
 @NoArgsConstructor(access = PRIVATE)
 public final class PlantUMLDiagramDataPipelines {
 
-    public static DiagramDataPipeline pipelineForFile(final FileFormat format,
-                                                      final DiagramConfiguration diagramConfiguration) {
+    public static DiagramDataPipeline relationshipsPipelineForFile(final FileFormat format,
+                                                                   final DiagramConfiguration diagramConfiguration) {
         return DiagramDataPipeline.of(
-            new PlantUMLDiagramDataTransformer(diagramConfiguration),
+            new PlantUMLRelationshipsDiagramDataTransformer(diagramConfiguration),
+            new PlantUMLDiagramDataFactory(format)
+        );
+    }
+
+    public static DiagramDataPipeline featuresPipelineForFile(final FileFormat format,
+                                                              final DiagramConfiguration diagramConfiguration) {
+        return DiagramDataPipeline.of(
+            new PlantUMLFeaturesDiagramDataTransformer(diagramConfiguration),
             new PlantUMLDiagramDataFactory(format)
         );
     }

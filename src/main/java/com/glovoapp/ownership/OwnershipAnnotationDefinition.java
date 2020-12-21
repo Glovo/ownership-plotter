@@ -1,11 +1,14 @@
 package com.glovoapp.ownership;
 
 import static java.util.Collections.emptyMap;
+import static java.util.stream.Collectors.toMap;
 import static lombok.AccessLevel.PACKAGE;
 import static lombok.AccessLevel.PRIVATE;
 
+import com.glovoapp.ownership.shared.Pair;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
@@ -19,6 +22,30 @@ public interface OwnershipAnnotationDefinition {
     static <A extends Annotation> OwnershipAnnotationDefinition define(@NonNull final Class<A> annotationClass,
                                                                        @NonNull final Function<A, ?> ownerGetter) {
         return define(annotationClass, ownerGetter, ignore -> emptyMap());
+    }
+
+    static <A extends Annotation> OwnershipAnnotationDefinition define(@NonNull final Class<A> annotationClass,
+                                                                       @NonNull final Function<A, ?> ownerGetter,
+                                                                       @NonNull final List<MetaDataExtractor<A, ?>> metaDataExtractors) {
+        return define(
+            annotationClass,
+            ownerGetter,
+            annotation -> metaDataExtractors.stream()
+                                            .map(extractor -> Pair.of(extractor.getName(), extractor.getMetaDataGetter()
+                                                                                                    .apply(annotation)))
+                                            .filter(pair -> pair.getRight()
+                                                                .isPresent())
+                                            .collect(toMap(
+                                                Pair::getLeft,
+                                                pair -> pair.getRight()
+                                                            .get(),
+                                                (firstData, secondData) -> {
+                                                    throw new IllegalStateException(
+                                                        "given two extractors for the same meta data element"
+                                                    );
+                                                }
+                                            ))
+        );
     }
 
     static <A extends Annotation> OwnershipAnnotationDefinition define(@NonNull final Class<A> annotationClass,
@@ -69,6 +96,22 @@ public interface OwnershipAnnotationDefinition {
 
     default boolean hasOwner(final AnnotatedElement givenElement) {
         return getOwnershipData(givenElement).isPresent();
+    }
+
+    @Getter(PRIVATE)
+    @RequiredArgsConstructor(access = PRIVATE)
+    final class MetaDataExtractor<A extends Annotation, T> {
+
+        private final String name;
+        private final Function<A, Optional<T>> metaDataGetter;
+
+        public static <A extends Annotation, T> MetaDataExtractor<A, T> metaDataExtractor(
+            final String key,
+            final Function<A, Optional<T>> metaDataGetter
+        ) {
+            return new MetaDataExtractor<>(key, metaDataGetter);
+        }
+
     }
 
     @Getter(PACKAGE)
