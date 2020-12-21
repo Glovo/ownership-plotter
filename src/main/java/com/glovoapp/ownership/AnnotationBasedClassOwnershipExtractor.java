@@ -42,7 +42,7 @@ public final class AnnotationBasedClassOwnershipExtractor implements ClassOwners
                             field -> new LazyReference<>(() -> getOwnershipOf(field.getType()))
                         ));
 
-            return Optional.of(new ClassOwnership(aClass, classOwner, methodOwners, dependenciesOwnership));
+            return Optional.of(new ClassOwnership(getClass(), aClass, classOwner, methodOwners, dependenciesOwnership));
         } catch (final NoClassDefFoundError error) {
             log.info("failed to fetch ownership of {}", aClass);
             return Optional.empty();
