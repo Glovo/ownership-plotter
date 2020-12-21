@@ -75,6 +75,7 @@ public final class ProgressWindow extends JFrame {
 
         public final void setCurrentOperationDescription(final String newCurrentOperationDescription) {
             operationDescriptionText.setText(newCurrentOperationDescription);
+            ProgressWindow.this.validate();
         }
 
         public final void markOperationAsComplete() {
