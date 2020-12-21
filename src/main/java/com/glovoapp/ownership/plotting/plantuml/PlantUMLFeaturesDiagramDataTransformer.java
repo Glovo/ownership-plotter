@@ -146,7 +146,7 @@ public final class PlantUMLFeaturesDiagramDataTransformer implements DiagramData
         diagram.append("@enduml\n");
         final String resultDiagram = diagram.toString();
 
-        log.info("generated diagram {}", resultDiagram);
+        log.info("generated diagram");
         return new SourceStringReader(resultDiagram);
     }
 
