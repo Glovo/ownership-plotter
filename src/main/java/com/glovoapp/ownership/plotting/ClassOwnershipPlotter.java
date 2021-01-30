@@ -5,7 +5,6 @@ import static java.util.stream.Collectors.toSet;
 import com.glovoapp.ownership.ClassOwnership;
 import com.glovoapp.ownership.ClassOwnershipExtractor;
 import com.glovoapp.ownership.classpath.ClasspathLoader;
-import java.io.FileOutputStream;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -21,7 +20,7 @@ public final class ClassOwnershipPlotter {
     private final ClasspathLoader classpathLoader;
     private final ClassOwnershipExtractor extractor;
     private final DomainOwnershipFilter filter;
-    private final DiagramDataPipeline diagramDataPipeline;
+    private final OwnershipDiagramPipeline diagramPipeline;
 
     /**
      * This method will load all classes in given package for analysis using {@link Reflections#getSubTypesOf(Class)}.
@@ -30,11 +29,9 @@ public final class ClassOwnershipPlotter {
      * as well.
      *
      * @param packagePrefix only classes from this package will be loaded, e.g. "com.example"
-     * @param fileName      name of the file to save the result to
      */
-    public final void writeDiagramOfClasspathToFile(final String packagePrefix, final String fileName) {
-        writeDiagramToFile(
-            fileName,
+    public final void createClasspathDiagram(final String packagePrefix) {
+        createDiagram(
             classpathLoader.loadAllClasses(packagePrefix)
                            .stream()
                            .filter(aClass -> Optional.of(aClass)
@@ -47,13 +44,9 @@ public final class ClassOwnershipPlotter {
     }
 
     @SneakyThrows
-    public final void writeDiagramToFile(final String fileName,
-                                         final Set<Class<?>> domain) {
+    public final void createDiagram(final Set<Class<?>> domain) {
         final Set<ClassOwnership> filteredDomainOwnership = extractAndFilter(domain);
-
-        final FileOutputStream fileOutputStream = new FileOutputStream(fileName);
-        diagramDataPipeline.generateDiagram(filteredDomainOwnership, fileOutputStream);
-        fileOutputStream.close();
+        diagramPipeline.createDiagram(filteredDomainOwnership);
     }
 
     private Set<ClassOwnership> extractAndFilter(final Set<Class<?>> domain) {

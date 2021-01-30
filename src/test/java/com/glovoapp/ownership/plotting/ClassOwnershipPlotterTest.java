@@ -11,11 +11,8 @@ import static com.glovoapp.ownership.plotting.ClassOwnershipFilter.hasMethodsWit
 import static com.glovoapp.ownership.plotting.ClassOwnershipFilter.isADependencyOfAClassThat;
 import static com.glovoapp.ownership.plotting.ClassOwnershipFilter.isInPackageThatStartsWith;
 import static com.glovoapp.ownership.plotting.ClassOwnershipFilter.isOwnedBy;
-import static com.glovoapp.ownership.plotting.plantuml.DiagramConfiguration.defaultDiagramConfiguration;
-import static com.glovoapp.ownership.plotting.plantuml.PlantUMLDiagramDataPipelines.featuresPipelineForFile;
-import static com.glovoapp.ownership.plotting.plantuml.PlantUMLDiagramDataPipelines.relationshipsPipelineForFile;
-import static com.glovoapp.ownership.plotting.plantuml.PlantUMLFeaturesDiagramDataTransformer.FEATURES_META_DATA_KEY;
-import static com.glovoapp.ownership.plotting.plantuml.PlantUMLFeaturesDiagramDataTransformer.createFeaturesExtractor;
+import static com.glovoapp.ownership.plotting.FeaturesDiagramDataFactory.FEATURES_META_DATA_KEY;
+import static com.glovoapp.ownership.plotting.FeaturesDiagramDataFactory.createFeaturesExtractor;
 import static java.util.Collections.singletonList;
 import static java.util.concurrent.Executors.newFixedThreadPool;
 
@@ -23,6 +20,10 @@ import com.glovoapp.ownership.AnnotationBasedClassOwnershipExtractor;
 import com.glovoapp.ownership.CachedClassOwnershipExtractor;
 import com.glovoapp.ownership.classpath.ReflectionsClasspathLoader;
 import com.glovoapp.ownership.examples.ExampleOwnershipAnnotation;
+import com.glovoapp.ownership.plotting.plantuml.PlantUMLDiagramRenderer;
+import com.glovoapp.ownership.plotting.plantuml.PlantUMLDiagramToFileDataSink;
+import com.glovoapp.ownership.plotting.plantuml.PlantUMLIdentifierGenerator;
+import java.io.File;
 import net.sourceforge.plantuml.FileFormat;
 import org.junit.jupiter.api.Test;
 
@@ -32,8 +33,8 @@ class ClassOwnershipPlotterTest {
 
     @Test
     void writeDiagramOfClassesLoadedInContextToFile_shouldWriteDiagram() {
-        ownershipPlotterWithFilter(isInPackageThatStartsWith("com.glovoapp"))
-            .writeDiagramOfClasspathToFile(GLOVO_PACKAGE, "/tmp/test-null-owner.svg");
+        ownershipPlotterWithFilter(isInPackageThatStartsWith("com.glovoapp"), "/tmp/test-null-owner.svg")
+            .createClasspathDiagram(GLOVO_PACKAGE);
 
         final String desiredOwner = TEAM_A.name();
         final ClassOwnershipFilter isARelevantClassOfDesiredOwner = isOwnedBy(desiredOwner).and(
@@ -51,8 +52,9 @@ class ClassOwnershipPlotterTest {
                 .and(
                     isADependencyOfAClassThat(isARelevantClassOfDesiredOwner)
                 )
-                .debugged()
-        ).writeDiagramOfClasspathToFile(GLOVO_PACKAGE, "/tmp/test-team-a.svg");
+                .debugged(),
+            "/tmp/test-team-a.svg"
+        ).createClasspathDiagram(GLOVO_PACKAGE);
     }
 
     @Test
@@ -77,11 +79,17 @@ class ClassOwnershipPlotterTest {
                             .or(hasMethodsWithMetaDataElementNamed(FEATURES_META_DATA_KEY))
                     )
             ),
-            featuresPipelineForFile(FileFormat.SVG, defaultDiagramConfiguration())
-        ).writeDiagramOfClasspathToFile(GLOVO_PACKAGE, "/tmp/test-features-team-a.svg");
+            OwnershipDiagramPipeline.of(
+                new PlantUMLIdentifierGenerator(),
+                new FeaturesDiagramDataFactory(),
+                new PlantUMLDiagramRenderer(FileFormat.SVG),
+                new PlantUMLDiagramToFileDataSink(FileFormat.SVG, new File("/tmp/test-features-team-a.svg"))
+            )
+        ).createClasspathDiagram(GLOVO_PACKAGE);
     }
 
-    private static ClassOwnershipPlotter ownershipPlotterWithFilter(final ClassOwnershipFilter filter) {
+    private static ClassOwnershipPlotter ownershipPlotterWithFilter(final ClassOwnershipFilter filter,
+                                                                    final String file) {
         return new ClassOwnershipPlotter(
             new ReflectionsClasspathLoader(),
             new CachedClassOwnershipExtractor(
@@ -94,7 +102,12 @@ class ClassOwnershipPlotterTest {
                 newFixedThreadPool(4),
                 4
             ),
-            relationshipsPipelineForFile(FileFormat.SVG, defaultDiagramConfiguration())
+            OwnershipDiagramPipeline.of(
+                new PlantUMLIdentifierGenerator(),
+                new RelationshipsDiagramDataFactory(),
+                new PlantUMLDiagramRenderer(FileFormat.SVG),
+                new PlantUMLDiagramToFileDataSink(FileFormat.SVG, new File(file))
+            )
         );
     }
 

@@ -14,11 +14,15 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = PRIVATE)
 public final class Sets {
 
-    public static <T> Set<T> union(final Set<T> first, final Set<T> second) {
+    /**
+     * @return a new {@link Set} containing all elements of both given sets
+     */
+    public static <T> Set<T> union(final Set<? extends T> first, final Set<? extends T> second) {
         return Stream.concat(
             first.stream(),
             second.stream()
-        ).collect(toSet());
+        )
+                     .collect(toSet());
     }
 
     /**
