@@ -1,10 +1,10 @@
 package com.glovoapp.ownership.plotting.plantuml;
 
-import static com.glovoapp.ownership.plotting.plantuml.Utils.RANDOM;
 import static java.util.Arrays.asList;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 import lombok.EqualsAndHashCode;
 
 
@@ -47,8 +47,8 @@ final class Color {
     /**
      * @return random color that should look good on both light and dark themes
      */
-    public static Color randomReadableColor() {
-        final List<Integer> cmyList = asList(77, 0, RANDOM.nextInt(77));
+    public static Color randomReadableColor(final Random random) {
+        final List<Integer> cmyList = asList(77, 0, random.nextInt(77));
         Collections.shuffle(cmyList);
         return new Color(cmyList.get(0), cmyList.get(1), cmyList.get(2), 14);
     }
@@ -57,7 +57,14 @@ final class Color {
      * @return a PlantUML friendly hex representation of this color, e.g. #0AF54C
      */
     final String toHexString() {
-        return "#" + hexPart(red) + hexPart(green) + hexPart(blue);
+        return "#" + toHexStringNoHash();
+    }
+
+    /**
+     * @return same as {@link #toHexString()} but without the leading # character
+     */
+    final String toHexStringNoHash() {
+        return hexPart(red) + hexPart(green) + hexPart(blue);
     }
 
     private static int checkRGBPart(final int value, final String name) {
