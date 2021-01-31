@@ -3,7 +3,6 @@ package com.glovoapp.ownership.plotting.plantuml;
 import static com.glovoapp.ownership.plotting.plantuml.Color.randomReadableColor;
 import static com.glovoapp.ownership.shared.Strings.repeat;
 import static java.util.stream.Collectors.joining;
-import static java.util.stream.Collectors.toList;
 import static lombok.AccessLevel.PRIVATE;
 
 import com.glovoapp.diagrams.Component;
@@ -37,10 +36,6 @@ public final class PlantUMLDiagramRenderer implements DiagramRenderer<PlantUMLId
     @Override
     @SneakyThrows
     public final InputStream renderDiagram(final Diagram<PlantUMLIdentifier, ClassRelationship> diagram) {
-        IntStream.rangeClosed(0, MAXIMUM_SUPPORTED_NESTING)
-                 .mapToObj(PlantUMLDiagramRenderer::getComponentColors)
-                 .collect(toList());
-
         final String diagramAsString = "@startuml\n"
             + "hide stereotype\n"
             + "skinparam package {\n"
@@ -51,7 +46,7 @@ public final class PlantUMLDiagramRenderer implements DiagramRenderer<PlantUMLId
                                                                                     .toHexString() + '\n'
                                + "BackgroundColor<<n" + nesting + ">> " + componentColors.getBackgroundColor()
                                                                                          .toHexString() + '\n'
-                               + "BorderColor<<n" + nesting + ">> " + componentColors.getBackgroundColor()
+                               + "BorderColor<<n" + nesting + ">> " + componentColors.getBorderColor()
                                                                                      .toHexString() + '\n';
                        })
                        .collect(joining("\n"))
@@ -106,7 +101,8 @@ public final class PlantUMLDiagramRenderer implements DiagramRenderer<PlantUMLId
             + (
             component.getNestedComponents()
                      .isEmpty()
-                ? folderIndent   + "folder " + component.getId() + "_empty <<n" + nesting + ">> {\n" + folderIndent + "}\n"
+                ? folderIndent + "folder " + component.getId() + "_empty <<n" + nesting + ">> {\n" + folderIndent
+                + "}\n"
                 : component.getNestedComponents()
                            .stream()
                            .map(nestedComponent -> renderComponent(nestedComponent, nesting + 1))
@@ -125,6 +121,7 @@ public final class PlantUMLDiagramRenderer implements DiagramRenderer<PlantUMLId
         final int fontBlack = backgroundBlack - 50 < 0 ? (backgroundBlack + 50) : backgroundBlack - 50;
         return new ComponentColors(
             new Color(0, 0, 0, backgroundBlack),
+            new Color(0, 0, 0, fontBlack),
             new Color(0, 0, 0, fontBlack)
         );
     }
@@ -157,6 +154,7 @@ public final class PlantUMLDiagramRenderer implements DiagramRenderer<PlantUMLId
 
         private final Color backgroundColor;
         private final Color fontColor;
+        private final Color borderColor;
 
     }
 
