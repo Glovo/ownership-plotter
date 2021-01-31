@@ -29,11 +29,11 @@ import org.junit.jupiter.api.Test;
 
 class ClassOwnershipPlotterTest {
 
-    private static final String GLOVO_PACKAGE = "com.glovoapp";
+    private static final String GLOVO_PACKAGE = "com.glovoapp.ownership.examples";
 
     @Test
     void writeDiagramOfClassesLoadedInContextToFile_shouldWriteDiagram() {
-        ownershipPlotterWithFilter(isInPackageThatStartsWith("com.glovoapp"), "/tmp/test-null-owner.svg")
+        ownershipPlotterWithFilter(isInPackageThatStartsWith(GLOVO_PACKAGE), "/tmp/test-null-owner.svg")
             .createClasspathDiagram(GLOVO_PACKAGE);
 
         final String desiredOwner = TEAM_A.name();
