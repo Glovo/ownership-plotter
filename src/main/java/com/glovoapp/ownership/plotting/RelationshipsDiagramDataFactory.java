@@ -168,6 +168,9 @@ public final class RelationshipsDiagramDataFactory implements OwnershipDiagramFa
         final IdentifierGenerator<Id> idGenerator
     ) {
         return domainOwnership.stream()
+                              .filter(classOwnership -> !classOwnership.getTheClass()
+                                                                       .getSimpleName()
+                                                                       .isEmpty())
                               .collect(
                                   toMap(
                                       identity(),

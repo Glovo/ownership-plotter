@@ -62,6 +62,9 @@ public final class FeaturesDiagramDataFactory implements OwnershipDiagramFactory
                                    getMethodFeatures(classOwnership)
                                )
                            )
+                           .filter(it -> !it.getTheClass()
+                                            .getSimpleName()
+                                            .isEmpty())
                            .collect(groupingBy(
                                OwnerAndFeatureAndClass::getOwner,
                                groupingBy(
