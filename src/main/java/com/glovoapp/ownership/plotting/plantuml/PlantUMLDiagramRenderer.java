@@ -78,7 +78,8 @@ public final class PlantUMLDiagramRenderer implements DiagramRenderer<PlantUMLId
 
         final SourceStringReader reader = new SourceStringReader(diagramAsString);
         final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        final String generationDescription = reader.generateImage(outputStream, new FileFormatOption(fileFormat));
+        final String generationDescription = reader.outputImage(outputStream, new FileFormatOption(fileFormat))
+                                                   .getDescription();
         log.info("diagram generated; PlantUML output: {}", generationDescription);
         return new ByteArrayInputStream(outputStream.toByteArray());
     }
