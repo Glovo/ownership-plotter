@@ -21,8 +21,8 @@ import com.glovoapp.ownership.CachedClassOwnershipExtractor;
 import com.glovoapp.ownership.classpath.ReflectionsClasspathLoader;
 import com.glovoapp.ownership.examples.ExampleOwnershipAnnotation;
 import com.glovoapp.ownership.plotting.plantuml.PlantUMLDiagramRenderer;
-import com.glovoapp.ownership.plotting.plantuml.PlantUMLDiagramToFileDataSink;
 import com.glovoapp.ownership.plotting.plantuml.PlantUMLIdentifierGenerator;
+import com.glovoapp.ownership.shared.DiagramToFileDataSink;
 import java.io.File;
 import net.sourceforge.plantuml.FileFormat;
 import org.junit.jupiter.api.Test;
@@ -83,7 +83,7 @@ class ClassOwnershipPlotterTest {
                 new PlantUMLIdentifierGenerator(),
                 new FeaturesDiagramDataFactory(),
                 new PlantUMLDiagramRenderer(FileFormat.SVG),
-                new PlantUMLDiagramToFileDataSink(FileFormat.SVG, new File("/tmp/test-features-team-a.svg"))
+                new DiagramToFileDataSink(new File("/tmp/test-features-team-a.svg"))
             )
         ).createClasspathDiagram(GLOVO_PACKAGE);
     }
@@ -106,7 +106,7 @@ class ClassOwnershipPlotterTest {
                 new PlantUMLIdentifierGenerator(),
                 new RelationshipsDiagramDataFactory(),
                 new PlantUMLDiagramRenderer(FileFormat.SVG),
-                new PlantUMLDiagramToFileDataSink(FileFormat.SVG, new File(file))
+                new DiagramToFileDataSink(new File(file))
             )
         );
     }
