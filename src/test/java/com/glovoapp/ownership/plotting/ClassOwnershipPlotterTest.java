@@ -13,6 +13,7 @@ import static com.glovoapp.ownership.plotting.ClassOwnershipFilter.isInPackageTh
 import static com.glovoapp.ownership.plotting.ClassOwnershipFilter.isOwnedBy;
 import static com.glovoapp.ownership.plotting.FeaturesDiagramDataFactory.FEATURES_META_DATA_KEY;
 import static com.glovoapp.ownership.plotting.FeaturesDiagramDataFactory.createFeaturesExtractor;
+import static java.lang.Runtime.getRuntime;
 import static java.util.Collections.singletonList;
 import static java.util.concurrent.Executors.newFixedThreadPool;
 
@@ -99,6 +100,7 @@ class ClassOwnershipPlotterTest {
 
     private static ClassOwnershipPlotter ownershipPlotterWithFilter(final ClassOwnershipFilter filter,
                                                                     final String file) {
+        final int cpuCores = getRuntime().availableProcessors();
         return new ClassOwnershipPlotter(
             new ReflectionsClasspathLoader(),
             new CachedClassOwnershipExtractor(
@@ -106,11 +108,7 @@ class ClassOwnershipPlotterTest {
                     define(ExampleOwnershipAnnotation.class, ExampleOwnershipAnnotation::owner)
                 )
             ),
-            DomainOwnershipFilter.parallelized(
-                filter,
-                newFixedThreadPool(4),
-                4
-            ),
+            DomainOwnershipFilter.parallelized(filter, newFixedThreadPool(cpuCores), cpuCores),
             OwnershipDiagramPipeline.of(
                 new PlantUMLIdentifierGenerator(),
                 new RelationshipsDiagramDataFactory(),
