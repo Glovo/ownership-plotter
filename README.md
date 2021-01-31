@@ -87,6 +87,21 @@ In the example above, all classes owned by "my-wonderful-team" or all dependenci
 There are various filters available.
 You can compose them to generate the exact diagram you are looking for.
 
+### Supported diagrams
+
+Two types of diagrams are supported out of the box:
+
+ 1. relationship diagram (`RelationshipsDiagramDataFactory`) - relationships between teams and classes
+ 2. features diagram (`FeaturesDiagramDataFactory`) - each team's "features" or "domains", similar to a service blueprint
+
+You may create your own type of diagram by implementing the `OwnershipDiagramFactory` interface.
+
+### Supported backends
+
+Currently, only PlantUML-generated diagrams are supported via the `PlantUMLDiagramRenderer` class.
+
+You may add your preferred diagram generation tool by implementing the `DiagramRenderer` interface.
+
 ### Performance tweaks
 
 #### Parallelized filtering
