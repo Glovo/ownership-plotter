@@ -55,12 +55,17 @@ class PlotOwnershipTest {
             new ReflectionsClasspathLoader(),
             new CachedClassOwnershipExtractor(
                 new AnnotationBasedClassOwnershipExtractor(
-                    define(YourOwnershipAnnotation.class)
+                    define(YourOwnershipAnnotation.class, YourOwnershipAnnotation::owner)
                 )
             ),
             it -> it,
-            pipelineForFile(FileFormat.SVG, defaultDiagramConfiguration())
-        ).writeDiagramOfClasspathToFile("com.example", "/tmp/com-example-domain.svg");
+            OwnershipDiagramPipeline.of(
+                new PlantUMLIdentifierGenerator(),
+                new RelationshipsDiagramDataFactory(),
+                new PlantUMLDiagramRenderer(FileFormat.SVG),
+                new DiagramToFileDataSink(new File("com-example-domain.svg"))
+            )
+        ).createClasspathDiagram("com.example");
     }
 
 }
@@ -70,7 +75,7 @@ You can filter the classes that you wish to include in the diagram by adding "ow
 
 ```java
 DomainOwnershipFilter.simple(
-    isOwnedBy("my-wonderful-team").and(
+    isOwnedBy("my-wonderful-team").or(
        isADependencyOfAClassThat(isOwnedBy("my-wonderful-team"))
     )
 )
@@ -82,9 +87,66 @@ In the example above, all classes owned by "my-wonderful-team" or all dependenci
 There are various filters available.
 You can compose them to generate the exact diagram you are looking for.
 
+### Supported diagrams
+
+Two types of diagrams are supported out of the box:
+
+ 1. relationship diagram (`RelationshipsDiagramDataFactory`) - relationships between teams and classes
+ 2. features diagram (`FeaturesDiagramDataFactory`) - each team's "features" or "domains", similar to a service blueprint
+
+You may create your own type of diagram by implementing the `OwnershipDiagramFactory` interface.
+
+### Supported backends
+
+Currently, only PlantUML-generated diagrams are supported via the `PlantUMLDiagramRenderer` class.
+
+You may add your preferred diagram generation tool by implementing the `DiagramRenderer` interface.
+
+### Performance tweaks
+
+#### Parallelized filtering
+
+If your project contains more than a thousand classes, the filtering process may get a bit slow.
+To mitigate this, a `parallelized` version of `DomainOwnershipFilter` can be used:
+
+```java
+final int coresCount = Runtime.getRuntime()
+                              .availableProcessors();
+final DomainOwnershipFilter filter = DomainOwnershipFilter.parallelized(
+    it -> true, // your filter here
+    newFixedThreadPool(coresCount),
+    coresCount
+);
+```
+
+Any thread pool may be used instead of a fixed one.
+
+The `partitionsCount` dictates how the domain will be split for filtering.
+Each partition will be passed to a separate thread.
+This means that if threads count is greater than partitions count, some threads in the pool will not be utilized. 
+
+#### Caching
+
+If the complexity of used filter is particularly large, you may wish to cache the filtering results.
+
+```java
+ClassOwnershipFilter filter = isOwnedBy("my-wonderful-team").cached();
+```
+
+Note this operation will make the filter stateful and may use _lots_ of memory.
+
+#### Debugging
+
+If the performance issues are not fixed by parallelization or caching, you might want to debug your filters.
+The helpful `.debugged()` method will create a new filter that logs potentially important metrics:
+
+```java
+ClassOwnershipFilter filter = isOwnedBy("my-wonderful-team").debugged();
+```
+
 ### Important note
 
 The `writeDiagramOfClasspathToFile` method uses `reflections` library to scan the entire classpath.
 This will effectively load all available classes.
 
-The tool should not be used outside of tests to avoid decreasing performance of your application.
+**The tool should not be used outside of tests to avoid decreasing performance of your application.**

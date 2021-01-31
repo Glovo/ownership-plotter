@@ -13,7 +13,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.function.BinaryOperator;
+import java.util.function.BiFunction;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
@@ -143,7 +143,7 @@ public interface ClassOwnershipFilter extends Predicate<OwnershipContext> {
         );
     }
 
-    static ClassOwnershipFilter hasMetaDataElementThat(final Predicate<Map.Entry<String, ?>> metaDataElementPredicate) {
+    static ClassOwnershipFilter hasMetaDataElementThat(final Predicate<Entry<String, ?>> metaDataElementPredicate) {
         return named(
             context -> context.getClassOwnership()
                               .getMetaData()
@@ -155,7 +155,7 @@ public interface ClassOwnershipFilter extends Predicate<OwnershipContext> {
     }
 
     static ClassOwnershipFilter hasMethodsWithMetaDataElementThat(
-        final Predicate<Map.Entry<String, ?>> methodMetaDataElementPredicate
+        final Predicate<Entry<String, ?>> methodMetaDataElementPredicate
     ) {
         return named(
             context -> context.getClassOwnership()
@@ -174,16 +174,16 @@ public interface ClassOwnershipFilter extends Predicate<OwnershipContext> {
     }
 
     default ClassOwnershipFilter and(final ClassOwnershipFilter another) {
-        return composeWith(another, Boolean::logicalAnd).named("(" + this + " and " + another + ')');
+        return composeWith(another, (a, b) -> a.get() && b.get()).named("(" + this + " and " + another + ')');
     }
 
     default ClassOwnershipFilter or(final ClassOwnershipFilter another) {
-        return composeWith(another, Boolean::logicalOr).named("(" + this + " or " + another + ')');
+        return composeWith(another, (a, b) -> a.get() || b.get()).named("(" + this + " or " + another + ')');
     }
 
     default ClassOwnershipFilter composeWith(final ClassOwnershipFilter another,
-                                             final BinaryOperator<Boolean> operator) {
-        return context -> operator.apply(this.test(context), another.test(context));
+                                             final BiFunction<Supplier<Boolean>, Supplier<Boolean>, Boolean> operator) {
+        return context -> operator.apply(() -> this.test(context), () -> another.test(context));
     }
 
     /**
@@ -206,6 +206,21 @@ public interface ClassOwnershipFilter extends Predicate<OwnershipContext> {
                 classOwnership -> this.test(ownershipContext)
             ),
             "CACHED[" + this + ']'
+        );
+    }
+
+    /**
+     * @param contextAndResultListener listener that will be called after each check
+     * @return a new {@link ClassOwnershipFilter} with the listener registered
+     */
+    default ClassOwnershipFilter withResultListener(final ClassOwnershipFilterResultListener contextAndResultListener) {
+        return named(
+            (OwnershipContext ownershipContext) -> {
+                boolean result = this.test(ownershipContext);
+                contextAndResultListener.accept(this, ownershipContext, result);
+                return result;
+            },
+            this.toString()
         );
     }
 
