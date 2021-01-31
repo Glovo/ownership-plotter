@@ -24,35 +24,44 @@ import com.glovoapp.ownership.plotting.plantuml.PlantUMLDiagramRenderer;
 import com.glovoapp.ownership.plotting.plantuml.PlantUMLIdentifierGenerator;
 import com.glovoapp.ownership.shared.DiagramToFileDataSink;
 import java.io.File;
+import lombok.extern.slf4j.Slf4j;
 import net.sourceforge.plantuml.FileFormat;
 import org.junit.jupiter.api.Test;
 
+@Slf4j
 class ClassOwnershipPlotterTest {
 
     private static final String GLOVO_PACKAGE = "com.glovoapp.ownership.examples";
 
     @Test
-    void writeDiagramOfClassesLoadedInContextToFile_shouldWriteDiagram() {
-        ownershipPlotterWithFilter(isInPackageThatStartsWith(GLOVO_PACKAGE), "/tmp/test-null-owner.svg")
+    void writeDiagramOfClassesLoadedInContextToFile_shouldWriteDiagramOfAllClasses() {
+        ownershipPlotterWithFilter(
+            isInPackageThatStartsWith(GLOVO_PACKAGE),
+            "/tmp/test-null-owner.svg"
+        )
             .createClasspathDiagram(GLOVO_PACKAGE);
+    }
 
+    @Test
+    void writeDiagramOfClassesLoadedInContextToFile_shouldWriteDiagram() {
         final String desiredOwner = TEAM_A.name();
-        final ClassOwnershipFilter isARelevantClassOfDesiredOwner = isOwnedBy(desiredOwner).and(
-            hasDependenciesWithOwnerOtherThan(desiredOwner).or(
-                hasMethodsWithOwnerOtherThan(desiredOwner)
-            )
-        );
+        final ClassOwnershipFilter isARelevantClassOfDesiredOwner =
+            isOwnedBy(desiredOwner)
+                .and(
+                    hasDependenciesWithOwnerOtherThan(desiredOwner)
+                        .or(hasMethodsWithOwnerOtherThan(desiredOwner))
+                );
         ownershipPlotterWithFilter(
             isARelevantClassOfDesiredOwner
-                .and(
-                    hasMethodsOwnedBy(desiredOwner).or(
-                        hasDependenciesThat(isARelevantClassOfDesiredOwner)
-                    )
+                .or(
+                    hasMethodsOwnedBy(desiredOwner)
+                        .or(
+                            hasDependenciesThat(isARelevantClassOfDesiredOwner)
+                        )
                 )
-                .and(
+                .or(
                     isADependencyOfAClassThat(isARelevantClassOfDesiredOwner)
-                )
-                .debugged(),
+                ),
             "/tmp/test-team-a.svg"
         ).createClasspathDiagram(GLOVO_PACKAGE);
     }

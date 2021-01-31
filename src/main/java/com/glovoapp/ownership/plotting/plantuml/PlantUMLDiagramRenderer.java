@@ -28,7 +28,7 @@ import net.sourceforge.plantuml.SourceStringReader;
 @RequiredArgsConstructor
 public final class PlantUMLDiagramRenderer implements DiagramRenderer<PlantUMLIdentifier, ClassRelationship> {
 
-    private static final int MAXIMUM_SUPPORTED_NESTING = 5;
+    private static final int MAXIMUM_SUPPORTED_NESTING = 8;
 
     private final Random random = new Random();
     private final FileFormat fileFormat;
@@ -76,8 +76,6 @@ public final class PlantUMLDiagramRenderer implements DiagramRenderer<PlantUMLId
                     .collect(joining("\n"))
             + "\n@enduml";
 
-        log.info("rendered diagram {}", diagramAsString);
-
         final SourceStringReader reader = new SourceStringReader(diagramAsString);
         final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         final String generationDescription = reader.generateImage(outputStream, new FileFormatOption(fileFormat));
@@ -117,7 +115,7 @@ public final class PlantUMLDiagramRenderer implements DiagramRenderer<PlantUMLId
                 "only " + MAXIMUM_SUPPORTED_NESTING + " levels of nested components are supported"
             );
         }
-        final int backgroundBlack = 100 - (nesting * 20);
+        final int backgroundBlack = 100 - ((nesting + 2) * 10);
         final int fontBlack = backgroundBlack - 50 < 0 ? (backgroundBlack + 50) : backgroundBlack - 50;
         return new ComponentColors(
             new Color(0, 0, 0, backgroundBlack),
