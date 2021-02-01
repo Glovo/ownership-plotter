@@ -9,7 +9,7 @@ import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor(access = PACKAGE)
-final class OwnershipContext {
+public final class OwnershipContext {
 
     private final ClassOwnership classOwnership;
     private final Collection<ClassOwnership> domainOwnership;
