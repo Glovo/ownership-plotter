@@ -89,6 +89,11 @@ public final class PlantUMLDiagramRenderer implements DiagramRenderer<PlantUMLId
     }
 
     private String renderComponent(final Component<PlantUMLIdentifier> component, final int nesting) {
+        if (nesting > MAXIMUM_SUPPORTED_NESTING) {
+            throw new IllegalArgumentException(
+                "only " + MAXIMUM_SUPPORTED_NESTING + " levels of nested components are supported"
+            );
+        }
         if (component.getName()
                      .isEmpty()) {
             log.warn("found empty component with ID {}, ignoring", component.getId());
@@ -111,11 +116,6 @@ public final class PlantUMLDiagramRenderer implements DiagramRenderer<PlantUMLId
     }
 
     private static ComponentColors getComponentColors(final int nesting) {
-        if (nesting > MAXIMUM_SUPPORTED_NESTING) {
-            throw new IllegalArgumentException(
-                "only " + MAXIMUM_SUPPORTED_NESTING + " levels of nested components are supported"
-            );
-        }
         final int backgroundBlack = 100 - ((nesting + 2) * 10);
         final int fontBlack = backgroundBlack - 50 < 0 ? (backgroundBlack + 50) : backgroundBlack - 50;
         return new ComponentColors(
