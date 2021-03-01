@@ -17,7 +17,7 @@
     <dependency>
       <groupId>net.sourceforge.plantuml</groupId>
       <artifactId>plantuml</artifactId>
-      <version>1.2021.0</version>
+      <version>1.2021.1</version>
     </dependency>
     <dependency>
       <groupId>org.projectlombok</groupId>
@@ -124,8 +124,7 @@
             </goals>
             <configuration>
               <target>
-                <jar destfile="${project.build.directory}/${project.build.finalName}-sources.jar"
-                  basedir="${project.build.directory}/delombok"/>
+                <jar destfile="${project.build.directory}/${project.build.finalName}-sources.jar" basedir="${project.build.directory}/delombok"/>
               </target>
             </configuration>
           </execution>
