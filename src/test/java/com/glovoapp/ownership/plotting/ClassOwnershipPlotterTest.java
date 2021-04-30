@@ -24,6 +24,7 @@ import com.glovoapp.ownership.examples.ExampleOwnershipAnnotation;
 import com.glovoapp.ownership.plotting.plantuml.PlantUMLDiagramRenderer;
 import com.glovoapp.ownership.plotting.plantuml.PlantUMLIdentifierGenerator;
 import com.glovoapp.ownership.shared.DiagramToFileDataSink;
+import com.glovoapp.ownership.shared.NeighborRandomizerDiagramRendererWrapper;
 import java.io.File;
 import lombok.extern.slf4j.Slf4j;
 import net.sourceforge.plantuml.FileFormat;
@@ -92,7 +93,9 @@ class ClassOwnershipPlotterTest {
             OwnershipDiagramPipeline.of(
                 new PlantUMLIdentifierGenerator(),
                 new FeaturesDiagramDataFactory(),
-                new PlantUMLDiagramRenderer(FileFormat.SVG),
+                NeighborRandomizerDiagramRendererWrapper.wrapClassDiagram(
+                    new PlantUMLDiagramRenderer(FileFormat.SVG)
+                ),
                 new DiagramToFileDataSink(new File("/tmp/test-features-team-a.svg"))
             )
         ).createClasspathDiagram(GLOVO_PACKAGE);

@@ -134,6 +134,8 @@ public final class PlantUMLDiagramRenderer implements DiagramRenderer<PlantUMLId
             arrow = "-[" + arrowColor.toHexString() + ",bold]" + repeat(arrowLength, '-') + "|>";
         } else if (relationship.getType() == ClassRelationship.USES) {
             arrow = ".[" + arrowColor.toHexString() + "]" + repeat(arrowLength, '.') + ">";
+        } else if (relationship.getType() == ClassRelationship.VISUAL) {
+            arrow = "=[hidden]=>";
         } else {
             throw new IllegalArgumentException("unsupported relationship type: " + relationship.getType());
         }
