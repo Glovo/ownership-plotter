@@ -2,6 +2,7 @@ package com.glovoapp.ownership.plotting.plantuml;
 
 import static lombok.AccessLevel.PACKAGE;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.glovoapp.diagrams.Identifier;
 import java.util.UUID;
 import lombok.EqualsAndHashCode;
@@ -20,9 +21,11 @@ public final class PlantUMLIdentifier implements Identifier<PlantUMLIdentifier> 
     }
 
     @Override
+    @JsonSerialize
     public final String toString() {
         // Plant UML IDs do not accept dashes but do accept underscores and alphanumeric characters.
         return delegate.toString()
                        .replace('-', '_');
     }
+
 }
