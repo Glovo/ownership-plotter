@@ -2,6 +2,7 @@ package com.glovoapp.ownership.plotting;
 
 import static com.glovoapp.ownership.OwnershipAnnotationDefinition.MetaDataExtractor.metaDataExtractor;
 import static java.util.Collections.emptySet;
+import static java.util.Collections.singleton;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.toSet;
@@ -15,6 +16,7 @@ import com.glovoapp.diagrams.IdentifierGenerator;
 import com.glovoapp.ownership.ClassOwnership;
 import com.glovoapp.ownership.OwnershipAnnotationDefinition.MetaDataExtractor;
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -66,44 +68,66 @@ public final class FeaturesDiagramDataFactory implements OwnershipDiagramFactory
                                             .getSimpleName()
                                             .isEmpty())
                            .collect(groupingBy(
-                               OwnerAndFeatureAndClass::getOwner,
+                               OwnerAndFeatureAndClassAndMethods::getOwner,
                                groupingBy(
-                                   OwnerAndFeatureAndClass::getFeature,
-                                   mapping(
-                                       OwnerAndFeatureAndClass::getTheClass,
-                                       mapping(
-                                           Class::getSimpleName,
-                                           toSet()
+                                   OwnerAndFeatureAndClassAndMethods::getFeature,
+                                   groupingBy(
+                                       OwnerAndFeatureAndClassAndMethods::getTheClass,
+                                       groupingBy(
+                                           it -> it.getTheClass()
+                                                   .getSimpleName(),
+                                           mapping(
+                                               OwnerAndFeatureAndClassAndMethods::getMethodNames,
+                                               toSet()
+                                           )
                                        )
                                    )
                                )
                            ))
                            .entrySet()
                            .stream()
-                           .map(ownerToFeaturesToClassNames ->
+                           .map(ownerToFeaturesToClassNamesToMethodNames ->
                                new SimpleComponent<>(
                                    idGenerator.generate(),
-                                   ownerToFeaturesToClassNames.getKey(),
-                                   ownerToFeaturesToClassNames.getValue()
-                                                              .entrySet()
-                                                              .stream()
-                                                              .map(featureToClassNames ->
-                                                                  new SimpleComponent<>(
-                                                                      idGenerator.generate(),
-                                                                      featureToClassNames.getKey(),
-                                                                      featureToClassNames.getValue()
-                                                                                         .stream()
-                                                                                         .map(className ->
-                                                                                             new SimpleComponent<>(
-                                                                                                 idGenerator.generate(),
-                                                                                                 className,
-                                                                                                 emptySet()
-                                                                                             )
-                                                                                         )
-                                                                                         .collect(toSet())
-                                                                  )
-                                                              )
-                                                              .collect(toSet())
+                                   ownerToFeaturesToClassNamesToMethodNames.getKey(),
+                                   ownerToFeaturesToClassNamesToMethodNames.getValue()
+                                                                           .entrySet()
+                                                                           .stream()
+                                                                           .map(featureToClassNameToMethodNames ->
+                                                                               new SimpleComponent<>(
+                                                                                   idGenerator.generate(),
+                                                                                   featureToClassNameToMethodNames.getKey(),
+                                                                                   featureToClassNameToMethodNames.getValue()
+                                                                                                                  .entrySet()
+                                                                                                                  .stream()
+                                                                                                                  .map(
+                                                                                                                      theClass ->
+                                                                                                                          new SimpleComponent<>(
+                                                                                                                              idGenerator.generate(),
+                                                                                                                              theClass.getKey()
+                                                                                                                                      .getSimpleName(),
+                                                                                                                              theClass.getValue()
+                                                                                                                                      .values()
+                                                                                                                                      .stream()
+                                                                                                                                      .flatMap(
+                                                                                                                                          Collection::stream)
+                                                                                                                                      .flatMap(
+                                                                                                                                          Collection::stream)
+                                                                                                                                      .map(
+                                                                                                                                          methodName -> new SimpleComponent<>(
+                                                                                                                                              idGenerator.generate(),
+                                                                                                                                              methodName,
+                                                                                                                                              emptySet()
+                                                                                                                                          ))
+                                                                                                                                      .collect(
+                                                                                                                                          toSet())
+                                                                                                                          )
+                                                                                                                  )
+                                                                                                                  .collect(
+                                                                                                                      toSet())
+                                                                               )
+                                                                           )
+                                                                           .collect(toSet())
                                )
                            )
                            .collect(toSet()),
@@ -111,7 +135,7 @@ public final class FeaturesDiagramDataFactory implements OwnershipDiagramFactory
         );
     }
 
-    private static Stream<OwnerAndFeatureAndClass> getMethodFeatures(final ClassOwnership classOwnership) {
+    private static Stream<OwnerAndFeatureAndClassAndMethods> getMethodFeatures(final ClassOwnership classOwnership) {
         return classOwnership.getMethodOwners()
                              .entrySet()
                              .stream()
@@ -127,24 +151,36 @@ public final class FeaturesDiagramDataFactory implements OwnershipDiagramFactory
                                                .map(FeaturesDiagramDataFactory::getFeaturesFrom)
                                                .map(Collection::stream)
                                                .orElseGet(Stream::empty)
-                                               .map(feature -> new OwnerAndFeatureAndClass(
+                                               .map(feature -> new OwnerAndFeatureAndClassAndMethods(
                                                    methodAndOwner.getValue(),
                                                    feature,
-                                                   classOwnership.getTheClass()
+                                                   classOwnership.getTheClass(),
+                                                   singleton(methodAndOwner.getKey()
+                                                                           .getName())
                                                ))
                              );
     }
 
-    private static Stream<OwnerAndFeatureAndClass> getClassFeatures(final ClassOwnership classOwnership) {
+    private static Stream<OwnerAndFeatureAndClassAndMethods> getClassFeatures(final ClassOwnership classOwnership) {
         return Optional.of(classOwnership)
                        .map(ClassOwnership::getClassOwner)
                        .map(owner ->
                            getFeaturesFrom(classOwnership.getMetaData())
                                .stream()
-                               .map(feature -> new OwnerAndFeatureAndClass(
+                               .map(feature -> new OwnerAndFeatureAndClassAndMethods(
                                    owner,
                                    feature,
-                                   classOwnership.getTheClass()
+                                   classOwnership.getTheClass(),
+                                   classOwnership.getMethodMetaData()
+                                                 .entrySet()
+                                                 .stream()
+                                                 .filter(methodMetaData ->
+                                                     getFeaturesFrom(methodMetaData.getValue())
+                                                         .contains(feature)
+                                                 )
+                                                 .map(Entry::getKey)
+                                                 .map(Method::getName)
+                                                 .collect(toSet())
                                ))
                        )
                        .orElseGet(Stream::empty);
@@ -167,11 +203,12 @@ public final class FeaturesDiagramDataFactory implements OwnershipDiagramFactory
 
     @Getter(PRIVATE)
     @RequiredArgsConstructor(access = PRIVATE)
-    private static final class OwnerAndFeatureAndClass {
+    private static final class OwnerAndFeatureAndClassAndMethods {
 
         private final String owner;
         private final String feature;
         private final Class<?> theClass;
+        private final Set<String> methodNames;
 
     }
 
