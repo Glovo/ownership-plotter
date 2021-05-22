@@ -1,6 +1,6 @@
-package com.glovoapp.ownership.plotting.plantuml;
+package com.glovoapp.ownership.plotting.extensions.plantuml;
 
-import static com.glovoapp.ownership.plotting.plantuml.Color.randomReadableColor;
+import static com.glovoapp.ownership.plotting.extensions.plantuml.Color.randomReadableColor;
 import static com.glovoapp.ownership.shared.Strings.repeat;
 import static java.util.stream.Collectors.joining;
 import static lombok.AccessLevel.PRIVATE;

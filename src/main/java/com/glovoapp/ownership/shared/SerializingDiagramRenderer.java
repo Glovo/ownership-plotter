@@ -9,7 +9,7 @@ import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import com.glovoapp.diagrams.Diagram;
 import com.glovoapp.diagrams.DiagramRenderer;
 import com.glovoapp.diagrams.Identifier;
-import com.glovoapp.ownership.plotting.plantuml.PlantUMLIdentifier;
+import com.glovoapp.ownership.plotting.extensions.plantuml.PlantUMLIdentifier;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -30,6 +30,14 @@ public final class SerializingDiagramRenderer<Id extends Identifier<Id>, Relatio
         final ObjectMapper objectMapper = new ObjectMapper();
 
         SimpleModule module = new SimpleModule();
+        module.addSerializer(UUIDIdentifier.class, new StdSerializer<UUIDIdentifier>(UUIDIdentifier.class) {
+            @Override
+            public final void serialize(final UUIDIdentifier value,
+                                        final JsonGenerator jsonGenerator,
+                                        final SerializerProvider serializerProvider) throws IOException {
+                jsonGenerator.writeString(value.toString());
+            }
+        });
         module.addSerializer(PlantUMLIdentifier.class, new StdSerializer<PlantUMLIdentifier>(PlantUMLIdentifier.class) {
             @Override
             public final void serialize(final PlantUMLIdentifier value,

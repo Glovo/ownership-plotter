@@ -1,4 +1,4 @@
-package com.glovoapp.ownership.plotting.plantuml;
+package com.glovoapp.ownership.plotting.extensions.plantuml;
 
 import static lombok.AccessLevel.PACKAGE;
 
