@@ -9,6 +9,7 @@ import com.glovoapp.ownership.shared.Pair;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -59,17 +60,33 @@ public interface OwnershipAnnotationDefinition {
                                                               .map(it::getAnnotation)
                                                               .orElseGet(() -> {
                                                                   if (it instanceof Class) {
-                                                                      return ((Class<?>) it)
+                                                                      final Class<?> theClass = (Class<?>) it;
+                                                                      if (theClass.getSimpleName()
+                                                                                  .startsWith("lambda$")
+                                                                          || theClass.getSimpleName()
+                                                                                     .startsWith("$jacoco")) {
+                                                                          return null;
+                                                                      }
+                                                                      return theClass
                                                                           .getPackage()
                                                                           .getAnnotation(annotationClass);
                                                                   } else if (it instanceof Method) {
-                                                                      final A declaringClassAnnotation = ((Method) it)
+                                                                      final Method method = (Method) it;
+
+                                                                      // ignore inherited methods
+                                                                      if (Arrays.stream(method.getDeclaringClass()
+                                                                                              .getDeclaredMethods())
+                                                                                .noneMatch(method::equals)) {
+                                                                          return null;
+                                                                      }
+
+                                                                      final A declaringClassAnnotation = method
                                                                           .getDeclaringClass()
                                                                           .getAnnotation(annotationClass);
                                                                       if (declaringClassAnnotation != null) {
                                                                           return declaringClassAnnotation;
                                                                       } else {
-                                                                          return ((Method) it)
+                                                                          return method
                                                                               .getDeclaringClass()
                                                                               .getPackage()
                                                                               .getAnnotation(annotationClass);
