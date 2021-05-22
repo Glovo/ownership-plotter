@@ -21,11 +21,13 @@ import com.glovoapp.ownership.AnnotationBasedClassOwnershipExtractor;
 import com.glovoapp.ownership.CachedClassOwnershipExtractor;
 import com.glovoapp.ownership.classpath.ReflectionsClasspathLoader;
 import com.glovoapp.ownership.examples.ExampleOwnershipAnnotation;
-import com.glovoapp.ownership.plotting.plantuml.PlantUMLDiagramRenderer;
-import com.glovoapp.ownership.plotting.plantuml.PlantUMLIdentifierGenerator;
-import com.glovoapp.ownership.shared.DiagramToConsoleDataSink;
+import com.glovoapp.ownership.plotting.extensions.html.HTMLTemplateDiagramRenderer;
+import com.glovoapp.ownership.plotting.extensions.html.HTMLTemplateDiagramRenderer.Template;
+import com.glovoapp.ownership.plotting.extensions.plantuml.PlantUMLDiagramRenderer;
+import com.glovoapp.ownership.plotting.extensions.plantuml.PlantUMLIdentifierGenerator;
 import com.glovoapp.ownership.shared.DiagramToFileDataSink;
-import com.glovoapp.ownership.shared.SerializingDiagramRenderer;
+import com.glovoapp.ownership.shared.NeighborRandomizerDiagramRendererWrapper;
+import com.glovoapp.ownership.shared.UUIDIdentifierGenerator;
 import java.io.File;
 import lombok.extern.slf4j.Slf4j;
 import net.sourceforge.plantuml.FileFormat;
@@ -92,14 +94,10 @@ class ClassOwnershipPlotterTest {
                     )
             ),
             OwnershipDiagramPipeline.of(
-                new PlantUMLIdentifierGenerator(),
+                new UUIDIdentifierGenerator(),
                 new FeaturesDiagramDataFactory(),
-//                NeighborRandomizerDiagramRendererWrapper.wrapClassDiagram(
-//                    new PlantUMLDiagramRenderer(FileFormat.SVG)
-//                ),
-//                new DiagramToFileDataSink(new File("/tmp/test-features-team-a.svg"))
-                SerializingDiagramRenderer.ofJackson(),
-                new DiagramToConsoleDataSink()
+                new HTMLTemplateDiagramRenderer(Template.EXAMPLE),
+                new DiagramToFileDataSink(new File("/tmp/" + desiredOwner + "_FEATURES.html"))
             )
         ).createClasspathDiagram(GLOVO_PACKAGE);
     }
@@ -118,7 +116,9 @@ class ClassOwnershipPlotterTest {
             OwnershipDiagramPipeline.of(
                 new PlantUMLIdentifierGenerator(),
                 new RelationshipsDiagramDataFactory(),
-                new PlantUMLDiagramRenderer(FileFormat.SVG),
+                NeighborRandomizerDiagramRendererWrapper.wrapClassDiagram(
+                    new PlantUMLDiagramRenderer(FileFormat.SVG)
+                ),
                 new DiagramToFileDataSink(new File(file))
             )
         );
