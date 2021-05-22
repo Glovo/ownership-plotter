@@ -38,11 +38,28 @@ class ClassOwnershipPlotterTest {
 
     private static final String GLOVO_PACKAGE = "com.glovoapp.ownership.examples";
 
+    private synchronized static String getDiagramsOutputDirectory() {
+        final File directoryFile = new File("./target/diagrams");
+        if (directoryFile.exists()) {
+            if (directoryFile.isDirectory()) {
+                return directoryFile.getAbsolutePath();
+            } else {
+                throw new IllegalStateException(directoryFile.getAbsolutePath() + " exists but is not a directory");
+            }
+        } else {
+            if (directoryFile.mkdirs()) {
+                return directoryFile.getAbsolutePath();
+            } else {
+                throw new IllegalStateException("unable to create " + directoryFile.getAbsolutePath());
+            }
+        }
+    }
+
     @Test
     void writeDiagramOfClassesLoadedInContextToFile_shouldWriteDiagramOfAllClasses() {
         ownershipPlotterWithFilter(
             isInPackageThatStartsWith(GLOVO_PACKAGE),
-            "/tmp/test-null-owner.svg"
+            getDiagramsOutputDirectory() + "/test-null-owner.svg"
         )
             .createClasspathDiagram(GLOVO_PACKAGE);
     }
@@ -67,7 +84,7 @@ class ClassOwnershipPlotterTest {
                 .or(
                     isADependencyOfAClassThat(isARelevantClassOfDesiredOwner)
                 ),
-            "/tmp/test-team-a.svg"
+            getDiagramsOutputDirectory() + "/test-team-a.svg"
         ).createClasspathDiagram(GLOVO_PACKAGE);
     }
 
@@ -97,7 +114,9 @@ class ClassOwnershipPlotterTest {
                 new UUIDIdentifierGenerator(),
                 new FeaturesDiagramDataFactory(),
                 new HTMLTemplateDiagramRenderer(Template.EXAMPLE),
-                new DiagramToFileDataSink(new File("/tmp/" + desiredOwner + "_FEATURES.html"))
+                new DiagramToFileDataSink(
+                    new File(getDiagramsOutputDirectory() + '/' + desiredOwner + "_FEATURES.html")
+                )
             )
         ).createClasspathDiagram(GLOVO_PACKAGE);
     }
