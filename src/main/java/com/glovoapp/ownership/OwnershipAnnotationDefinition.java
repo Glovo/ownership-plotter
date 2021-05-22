@@ -77,6 +77,8 @@ public interface OwnershipAnnotationDefinition {
                                                                                 .noneMatch(method::equals)
                                                                           || method.getName()
                                                                                    .startsWith("$jacoco")
+                                                                          || method.getName()
+                                                                                   .startsWith("lambda$")
                                                                       ) {
                                                                           return null;
                                                                       }
