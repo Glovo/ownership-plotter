@@ -62,9 +62,7 @@ public interface OwnershipAnnotationDefinition {
                                                                   if (it instanceof Class) {
                                                                       final Class<?> theClass = (Class<?>) it;
                                                                       if (theClass.getSimpleName()
-                                                                                  .startsWith("lambda$")
-                                                                          || theClass.getSimpleName()
-                                                                                     .startsWith("$jacoco")) {
+                                                                                  .startsWith("lambda$")) {
                                                                           return null;
                                                                       }
                                                                       return theClass
@@ -76,7 +74,10 @@ public interface OwnershipAnnotationDefinition {
                                                                       // ignore inherited methods
                                                                       if (Arrays.stream(method.getDeclaringClass()
                                                                                               .getDeclaredMethods())
-                                                                                .noneMatch(method::equals)) {
+                                                                                .noneMatch(method::equals)
+                                                                          || method.getName()
+                                                                                   .startsWith("$jacoco")
+                                                                      ) {
                                                                           return null;
                                                                       }
 
