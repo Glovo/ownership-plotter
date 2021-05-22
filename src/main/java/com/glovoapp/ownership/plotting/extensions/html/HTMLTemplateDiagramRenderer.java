@@ -72,7 +72,7 @@ public final class HTMLTemplateDiagramRenderer implements DiagramRenderer<UUIDId
         final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         final BufferedDiagramDataSink delegate = new BufferedDiagramDataSink(outputStream);
         delegate.accept(serializedDiagram);
-        rawDiagramDataElement.text(outputStream.toString());
+        rawDiagramDataElement.attr("content", outputStream.toString());
 
         return new ByteArrayInputStream(htmlDiagram.toString()
                                                    .getBytes(UTF_8));

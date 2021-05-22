@@ -8,6 +8,7 @@ import static lombok.AccessLevel.PRIVATE;
 import com.glovoapp.ownership.shared.Pair;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
+import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -54,7 +55,29 @@ public interface OwnershipAnnotationDefinition {
         return givenElement -> Optional.ofNullable(givenElement)
                                        .map(it -> {
                                            try {
-                                               return it.getAnnotation(annotationClass);
+                                               return Optional.of(annotationClass)
+                                                              .map(it::getAnnotation)
+                                                              .orElseGet(() -> {
+                                                                  if (it instanceof Class) {
+                                                                      return ((Class<?>) it)
+                                                                          .getPackage()
+                                                                          .getAnnotation(annotationClass);
+                                                                  } else if (it instanceof Method) {
+                                                                      final A declaringClassAnnotation = ((Method) it)
+                                                                          .getDeclaringClass()
+                                                                          .getAnnotation(annotationClass);
+                                                                      if (declaringClassAnnotation != null) {
+                                                                          return declaringClassAnnotation;
+                                                                      } else {
+                                                                          return ((Method) it)
+                                                                              .getDeclaringClass()
+                                                                              .getPackage()
+                                                                              .getAnnotation(annotationClass);
+                                                                      }
+                                                                  } else {
+                                                                      return null;
+                                                                  }
+                                                              });
                                            } catch (final Exception exception) {
                                                LoggerFactory.getLogger(OwnershipAnnotationDefinition.class)
                                                             .warn(
