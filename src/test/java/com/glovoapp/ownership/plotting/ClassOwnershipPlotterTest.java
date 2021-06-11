@@ -113,7 +113,7 @@ class ClassOwnershipPlotterTest {
             OwnershipDiagramPipeline.of(
                 new UUIDIdentifierGenerator(),
                 new FeaturesDiagramDataFactory(),
-                new HTMLTemplateDiagramRenderer(Template.EXAMPLE),
+                new HTMLTemplateDiagramRenderer(Template.TREEMAP),
                 new DiagramToFileDataSink(
                     new File(getDiagramsOutputDirectory() + '/' + desiredOwner + "_FEATURES.html")
                 )
