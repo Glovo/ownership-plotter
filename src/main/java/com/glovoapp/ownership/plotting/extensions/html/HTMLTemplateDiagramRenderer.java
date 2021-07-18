@@ -12,6 +12,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.util.Locale;
+import java.util.Optional;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
@@ -63,10 +64,19 @@ public final class HTMLTemplateDiagramRenderer implements DiagramRenderer<UUIDId
     public final InputStream renderDiagram(final Diagram<UUIDIdentifier, ClassRelationship> diagram) {
         final Document htmlDiagram = htmlTemplate.clone();
 
-        final Element rawDiagramDataElement = htmlDiagram.createElement("meta");
-        rawDiagramDataElement.attr("name", RAW_DIAGRAM_DATA_META_ELEMENT_ID);
-        htmlDiagram.head()
-                   .appendChild(rawDiagramDataElement);
+        final Element rawDiagramDataElement = Optional
+            .ofNullable(
+                htmlDiagram.getElementsByAttributeValue("name", RAW_DIAGRAM_DATA_META_ELEMENT_ID)
+                           .addClass("meta")
+                           .first()
+            )
+            .orElseGet(() -> {
+                final Element newElement = htmlDiagram.createElement("meta");
+                newElement.attr("name", RAW_DIAGRAM_DATA_META_ELEMENT_ID);
+                htmlDiagram.head()
+                           .appendChild(newElement);
+                return newElement;
+            });
 
         final InputStream serializedDiagram = delegate.renderDiagram(diagram);
         final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
