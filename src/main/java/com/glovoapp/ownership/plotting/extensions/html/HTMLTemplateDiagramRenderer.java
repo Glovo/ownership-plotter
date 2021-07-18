@@ -24,7 +24,7 @@ public final class HTMLTemplateDiagramRenderer implements DiagramRenderer<UUIDId
     private static final String RAW_DIAGRAM_DATA_META_ELEMENT_ID = "rawDiagramData";
 
     public enum Template {
-        EXAMPLE;
+        EXAMPLE, TREEMAP;
 
         private String getTemplateResourceName() {
             return "html_diagram_templates/" + name().toLowerCase(Locale.ENGLISH) + ".html";
