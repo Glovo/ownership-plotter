@@ -191,6 +191,34 @@
           <additionalOptions>-Xdoclint:none</additionalOptions>
         </configuration>
       </plugin>
+      <plugin>
+        <groupId>org.jfrog.buildinfo</groupId>
+        <artifactId>artifactory-maven-plugin</artifactId>
+        <version>3.2.3</version>
+        <inherited>false</inherited>
+        <executions>
+          <execution>
+            <id>build-info</id>
+            <goals>
+              <goal>publish</goal>
+            </goals>
+            <configuration>
+              <deployProperties>
+                <groupId>${project.groupId}</groupId>
+                <artifactId>${project.artifactId}</artifactId>
+                <version>${project.version}</version>
+              </deployProperties>
+              <publisher>
+                <contextUrl>https://artifactory.glovoint.com/artifactory</contextUrl>
+                <username>{{ARTIFACTORY_USER}}</username>
+                <password>{{ARTIFACTORY_PASSWORD}}</password>
+                <repoKey>gradle-release</repoKey>
+                <snapshotRepoKey>gradle-release-local</snapshotRepoKey>
+              </publisher>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
   </build>
 
