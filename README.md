@@ -1,32 +1,45 @@
-# Overview
+# Ownership Plotter
 
-The `ownership-plotter` is a tool for visualizing bounded context based on annotations present in the code.
+A tool for visualizing bounded context based on annotations present in the code.
 
-It is designed with customization in mind: you can choose which parts of your application to visualize.
+It is designed with customization in mind: you can choose which parts of your
+application to visualize.
 
 Example diagram from the "perspective" of `TEAM_A`:
 
-![](example-diagram.svg)
+![Example diagram](example-diagram.svg)
 
-# Usage
+## Usage
 
-## Requirements
+### Prerequisites
 
-The tool depends on PlantUML for generating diagrams, which in turn requires [Graphviz](https://graphviz.org/download/) to be installed.
+The tool depends on
+[PlantUML](https://mvnrepository.com/artifact/net.sourceforge.plantuml/plantuml)
+for generating diagrams, which in turn requires
+[Graphviz](https://graphviz.org/download) to be installed on your machine:
 
-## Installation
-
-To install the tool in your local Maven repository, use the following command:
-
-```bash
-maven clean install -DskipTests
+```console
+brew install graphviz
 ```
 
-This will put all `.jar` files in your `~/.m2` directory, making the tool visible for other projects.
+### Installation
 
-## Setup in project
+To make Ownership Plotter available locally, `install` it into the local Maven
+repository by running the following:
 
-To enable the tool in your project, add it as Maven or Gradle dependency:
+```console
+mvn clean install -DskipTests
+```
+
+This will put all `.jar` files in your `~/.m2` directory, making the tool
+visible for other projects.
+
+### Setup in project
+
+_NOTE:_ Use `PlantUML` version from
+[this very project](https://github.com/Glovo/ownership-plotter/blob/master/pom.xml).
+
+To use the tool in your project, add it as Maven or Gradle dependency:
 
 ```xml
 <dependency>
@@ -34,15 +47,19 @@ To enable the tool in your project, add it as Maven or Gradle dependency:
   <artifactId>ownership-plotter</artifactId>
   <version>${ownershipPlotter.version}</version>
 </dependency>
+<dependency>
+  <groupId>net.sourceforge.plantuml</groupId>
+  <artifactId>plantuml</artifactId>
+  <version>${PlantUML.version}</version>
+</dependency>
 ```
 
 ```groovy
 testImplementation "com.glovoapp:ownership-plotter:${ownershipPlotter.version}"
+testImplementation "net.sourceforge.plantuml:plantuml:${PlantUML.version}"
 ```
 
-replacing `${ownershipPlotter.version}` with the desired version of the tool.
-
-## Creating the diagram
+### Creating the diagram
 
 The easiest way to create a domain diagram is with a test, for example:
 
@@ -69,9 +86,10 @@ class PlotOwnershipTest {
     }
 
 }
-``` 
+```
 
-You can filter the classes that you wish to include in the diagram by adding "ownership filters":
+You can filter the classes that you wish to include in the diagram by adding
+"ownership filters":
 
 ```java
 DomainOwnershipFilter.simple(
@@ -81,33 +99,40 @@ DomainOwnershipFilter.simple(
 )
 ```
 
-If the class matches any of the filters, it will be included in the result.
-In the example above, all classes owned by "my-wonderful-team" or all dependencies of classes owned by "my-wonderful-team" will be included.
+If the class matches any of the filters, it will be included in the result. In
+the example above, all classes owned by "my-wonderful-team" or all dependencies
+of classes owned by "my-wonderful-team" will be included.
 
-There are various filters available.
-You can compose them to generate the exact diagram you are looking for.
+There are various filters available. You can compose them to generate the exact
+diagram you are looking for.
 
-### Supported diagrams
+#### Supported diagrams
 
 Two types of diagrams are supported out of the box:
 
- 1. relationship diagram (`RelationshipsDiagramDataFactory`) - relationships between teams and classes
- 2. features diagram (`FeaturesDiagramDataFactory`) - each team's "features" or "domains", similar to a service blueprint
+1. Relationship diagram (`RelationshipsDiagramDataFactory`) - relationships
+   between teams and classes
+1. Features diagram (`FeaturesDiagramDataFactory`) - each team's "features" or
+   "domains", similar to a service blueprint
 
-You may create your own type of diagram by implementing the `OwnershipDiagramFactory` interface.
+You may create your own type of diagram by implementing the
+`OwnershipDiagramFactory` interface.
 
-### Supported backends
+#### Supported backends
 
-Currently, only PlantUML-generated diagrams are supported via the `PlantUMLDiagramRenderer` class.
+Currently, only PlantUML-generated diagrams are supported via the
+`PlantUMLDiagramRenderer` class.
 
-You may add your preferred diagram generation tool by implementing the `DiagramRenderer` interface.
+You may add your preferred diagram generation tool by implementing the
+`DiagramRenderer` interface.
 
-### Performance tweaks
+#### Performance tweaks
 
-#### Parallelized filtering
+##### Parallelized filtering
 
-If your project contains more than a thousand classes, the filtering process may get a bit slow.
-To mitigate this, a `parallelized` version of `DomainOwnershipFilter` can be used:
+If your project contains more than a thousand classes, the filtering process may
+get a bit slow. To mitigate this, a `parallelized` version of
+`DomainOwnershipFilter` can be used:
 
 ```java
 final int coresCount = Runtime.getRuntime()
@@ -121,13 +146,14 @@ final DomainOwnershipFilter filter = DomainOwnershipFilter.parallelized(
 
 Any thread pool may be used instead of a fixed one.
 
-The `partitionsCount` dictates how the domain will be split for filtering.
-Each partition will be passed to a separate thread.
-This means that if threads count is greater than partitions count, some threads in the pool will not be utilized. 
+The `partitionsCount` dictates how the domain will be split for filtering. Each
+partition will be passed to a separate thread. This means that if threads count
+is greater than partitions count, some threads in the pool will not be utilized.
 
-#### Caching
+##### Caching
 
-If the complexity of used filter is particularly large, you may wish to cache the filtering results.
+If the complexity of used filter is particularly large, you may wish to cache
+the filtering results.
 
 ```java
 ClassOwnershipFilter filter = isOwnedBy("my-wonderful-team").cached();
@@ -135,18 +161,20 @@ ClassOwnershipFilter filter = isOwnedBy("my-wonderful-team").cached();
 
 Note this operation will make the filter stateful and may use _lots_ of memory.
 
-#### Debugging
+##### Debugging
 
-If the performance issues are not fixed by parallelization or caching, you might want to debug your filters.
-The helpful `.debugged()` method will create a new filter that logs potentially important metrics:
+If the performance issues are not fixed by parallelization or caching, you might
+want to debug your filters. The helpful `.debugged()` method will create a new
+filter that logs potentially important metrics:
 
 ```java
 ClassOwnershipFilter filter = isOwnedBy("my-wonderful-team").debugged();
 ```
 
-### Important note
+#### Important note
 
-The `writeDiagramOfClasspathToFile` method uses `reflections` library to scan the entire classpath.
-This will effectively load all available classes.
+The `writeDiagramOfClasspathToFile` method uses `reflections` library to scan
+the entire classpath. This will effectively load all available classes.
 
-**The tool should not be used outside of tests to avoid decreasing performance of your application.**
+**The tool should not be used outside of tests to avoid decreasing performance
+of your application.**
