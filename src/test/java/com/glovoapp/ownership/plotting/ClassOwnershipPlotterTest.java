@@ -2,15 +2,8 @@ package com.glovoapp.ownership.plotting;
 
 import static com.glovoapp.ownership.OwnershipAnnotationDefinition.define;
 import static com.glovoapp.ownership.examples.ExampleOwner.TEAM_A;
-import static com.glovoapp.ownership.plotting.ClassOwnershipFilter.hasDependenciesThat;
-import static com.glovoapp.ownership.plotting.ClassOwnershipFilter.hasDependenciesWithOwnerOtherThan;
-import static com.glovoapp.ownership.plotting.ClassOwnershipFilter.hasMetaDataElementNamed;
-import static com.glovoapp.ownership.plotting.ClassOwnershipFilter.hasMethodsOwnedBy;
-import static com.glovoapp.ownership.plotting.ClassOwnershipFilter.hasMethodsWithMetaDataElementNamed;
-import static com.glovoapp.ownership.plotting.ClassOwnershipFilter.hasMethodsWithOwnerOtherThan;
-import static com.glovoapp.ownership.plotting.ClassOwnershipFilter.isADependencyOfAClassThat;
-import static com.glovoapp.ownership.plotting.ClassOwnershipFilter.isInPackageThatStartsWith;
-import static com.glovoapp.ownership.plotting.ClassOwnershipFilter.isOwnedBy;
+import static com.glovoapp.ownership.examples.ExampleOwner.TEAM_B;
+import static com.glovoapp.ownership.plotting.ClassOwnershipFilter.*;
 import static com.glovoapp.ownership.plotting.FeaturesDiagramDataFactory.FEATURES_META_DATA_KEY;
 import static com.glovoapp.ownership.plotting.FeaturesDiagramDataFactory.createFeaturesExtractor;
 import static java.lang.Runtime.getRuntime;
@@ -20,6 +13,7 @@ import static java.util.concurrent.Executors.newFixedThreadPool;
 import com.glovoapp.ownership.AnnotationBasedClassOwnershipExtractor;
 import com.glovoapp.ownership.CachedClassOwnershipExtractor;
 import com.glovoapp.ownership.classpath.ReflectionsClasspathLoader;
+import com.glovoapp.ownership.example2.OwnerWithContextAnnotation;
 import com.glovoapp.ownership.examples.ExampleOwnershipAnnotation;
 import com.glovoapp.ownership.plotting.extensions.html.HTMLTemplateDiagramRenderer;
 import com.glovoapp.ownership.plotting.extensions.html.HTMLTemplateDiagramRenderer.Template;
@@ -29,6 +23,9 @@ import com.glovoapp.ownership.shared.DiagramToFileDataSink;
 import com.glovoapp.ownership.shared.NeighborRandomizerDiagramRendererWrapper;
 import com.glovoapp.ownership.shared.UUIDIdentifierGenerator;
 import java.io.File;
+import java.lang.reflect.InvocationTargetException;
+import java.util.Collections;
+
 import lombok.extern.slf4j.Slf4j;
 import net.sourceforge.plantuml.FileFormat;
 import org.junit.jupiter.api.Test;
@@ -121,6 +118,38 @@ class ClassOwnershipPlotterTest {
         ).createClasspathDiagram(GLOVO_PACKAGE);
     }
 
+    @Test
+    void writeDiagramOfClassesLoadedInContextToFile_shouldContextMapDiagram() {
+        String desiredContext = "downstream";
+        new ClassOwnershipPlotter(
+                new ReflectionsClasspathLoader(),
+                new AnnotationBasedClassOwnershipExtractor(define(OwnerWithContextAnnotation.class, OwnerWithContextAnnotation::boundedContext)),
+/*                DomainOwnershipFilter.simple(
+                        isOwnedBy(desiredContext)
+                                //.or(hasDependenciesOwnedBy(desiredContext))
+                                .or(isADependencyOfAClassThat(isOwnedBy(desiredContext)))
+                ),
+
+*/
+                DomainOwnershipFilter.simple(
+                        isADependencyOfAClassThat(isOwnedBy(desiredContext))
+                                .or(hasDependenciesWithOwnerOtherThan(desiredContext))
+
+                ),
+                packageDiagramePipeline()
+        ).createClasspathDiagram("com.glovoapp.ownership.example2");
+    }
+
+    private static OwnershipDiagramPipeline packageDiagramePipeline() {
+        return OwnershipDiagramPipeline.of(
+                new PlantUMLIdentifierGenerator(),
+                new RelationshipsDiagramDataFactory(),
+                new PlantUMLDiagramRenderer(FileFormat.SVG),
+                new DiagramToFileDataSink(
+                        new File(getDiagramsOutputDirectory() + '/' + "package_diagram.svg")
+                )
+        );
+    }
     private static ClassOwnershipPlotter ownershipPlotterWithFilter(final ClassOwnershipFilter filter,
                                                                     final String file) {
         final int cpuCores = getRuntime().availableProcessors();
