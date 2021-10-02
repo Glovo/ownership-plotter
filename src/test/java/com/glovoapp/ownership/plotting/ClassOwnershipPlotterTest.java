@@ -134,6 +134,7 @@ class ClassOwnershipPlotterTest {
                 DomainOwnershipFilter.simple(
                         isADependencyOfAClassThat(isOwnedBy(desiredContext))
                                 .or(hasDependenciesWithOwnerOtherThan(desiredContext))
+                                .or(hasDependenciesOwnedBy("nobody"))
 
                 ),
                 packageDiagramePipeline()

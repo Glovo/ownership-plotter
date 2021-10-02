@@ -1,6 +1,7 @@
 package com.glovoapp.ownership;
 
 import static java.util.Collections.emptyMap;
+import static java.util.Collections.emptySet;
 import static java.util.stream.Collectors.toMap;
 import static lombok.AccessLevel.PACKAGE;
 import static lombok.AccessLevel.PRIVATE;
@@ -8,7 +9,6 @@ import static lombok.AccessLevel.PRIVATE;
 import com.glovoapp.ownership.shared.Pair;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
@@ -54,72 +54,80 @@ public interface OwnershipAnnotationDefinition {
     static <A extends Annotation> OwnershipAnnotationDefinition define(@NonNull final Class<A> annotationClass,
                                                                        @NonNull final Function<A, ?> ownerGetter,
                                                                        @NonNull final Function<A, Map<String, ?>> metaDataGetter) {
-        return givenElement -> Optional.ofNullable(givenElement)
-                                       .map(it -> {
-                                           try {
-                                               return Optional.of(annotationClass)
-                                                              .map(it::getAnnotation)
-                                                              .orElseGet(() -> {
-                                                                  if (it instanceof Class) {
-                                                                      final Class<?> theClass = (Class<?>) it;
-                                                                      if (theClass.getSimpleName()
-                                                                                  .startsWith("lambda$")) {
-                                                                          return null;
-                                                                      }
-                                                                      return theClass
-                                                                          .getPackage()
-                                                                          .getAnnotation(annotationClass);
-                                                                  } else if (it instanceof Method) {
-                                                                      final Method method = (Method) it;
+        return givenElement -> {
+            Optional<A> a = Optional.ofNullable(givenElement).map(it -> extraceAnnoation(it, annotationClass));
 
-                                                                      // ignore inherited methods
-                                                                      if (Arrays.stream(method.getDeclaringClass()
-                                                                                              .getDeclaredMethods())
-                                                                                .noneMatch(method::equals)
-                                                                          || method.getName()
-                                                                                   .startsWith("$jacoco")
-                                                                          || method.getName()
-                                                                                   .startsWith("lambda$")
-                                                                      ) {
-                                                                          return null;
-                                                                      }
+            if (!a.isPresent()) {
+                return Optional.of(new OwnershipData("nobody", emptyMap()));
+            }
+            return a.map(annotation -> {
+                try {
+                    return new OwnershipData(
+                            String.valueOf(ownerGetter.apply(annotation)),
+                            metaDataGetter.apply(annotation)
+                    );
+                } catch (final Exception ownerGetterInvocationException) {
+                    throw new OwnerFetchingException(ownerGetterInvocationException);
+                }
+            });
+        };
+    }
 
-                                                                      final A declaringClassAnnotation = method
-                                                                          .getDeclaringClass()
-                                                                          .getAnnotation(annotationClass);
-                                                                      if (declaringClassAnnotation != null) {
-                                                                          return declaringClassAnnotation;
-                                                                      } else {
-                                                                          return method
-                                                                              .getDeclaringClass()
-                                                                              .getPackage()
-                                                                              .getAnnotation(annotationClass);
-                                                                      }
-                                                                  } else {
-                                                                      return null;
-                                                                  }
-                                                              });
-                                           } catch (final Exception exception) {
-                                               LoggerFactory.getLogger(OwnershipAnnotationDefinition.class)
-                                                            .warn(
-                                                                "failed to get annotation {} from {}, class will be ignored",
-                                                                annotationClass.getSimpleName(),
-                                                                it,
-                                                                exception
-                                                            );
-                                               return null;
-                                           }
-                                       })
-                                       .map(annotation -> {
-                                           try {
-                                               return new OwnershipData(
-                                                   String.valueOf(ownerGetter.apply(annotation)),
-                                                   metaDataGetter.apply(annotation)
-                                               );
-                                           } catch (final Exception ownerGetterInvocationException) {
-                                               throw new OwnerFetchingException(ownerGetterInvocationException);
-                                           }
-                                       });
+    static  <A extends Annotation> A extraceAnnoation (AnnotatedElement it, Class<A> annotationClass) {
+        try {
+            return Optional.of(annotationClass)
+                    .map(it::getAnnotation)
+                    .orElseGet(() -> {
+                        if (it instanceof Class) {
+                            final Class<?> theClass = (Class<?>) it;
+                            if (theClass.getSimpleName()
+                                    .startsWith("lambda$")) {
+                                return null;
+                            }
+                            return theClass
+                                    .getPackage()
+                                    .getAnnotation(annotationClass);
+                        } else if (it instanceof Method) {
+                            final Method method = (Method) it;
+
+                            // ignore inherited methods
+                            if (Arrays.stream(method.getDeclaringClass()
+                                            .getDeclaredMethods())
+                                    .noneMatch(method::equals)
+                                    || method.getName()
+                                    .startsWith("$jacoco")
+                                    || method.getName()
+                                    .startsWith("lambda$")
+                            ) {
+                                return null;
+                            }
+
+                            final A declaringClassAnnotation = method
+                                    .getDeclaringClass()
+                                    .getAnnotation(annotationClass);
+                            if (declaringClassAnnotation != null) {
+                                return declaringClassAnnotation;
+                            } else {
+                                return method
+                                        .getDeclaringClass()
+                                        .getPackage()
+                                        .getAnnotation(annotationClass);
+                            }
+                        } else {
+                            return null;
+                        }
+                    });
+        } catch (final Exception exception) {
+            LoggerFactory.getLogger(OwnershipAnnotationDefinition.class)
+                    .warn(
+                            "failed to get annotation {} from {}, class will be ignored",
+                            annotationClass.getSimpleName(),
+                            it,
+                            exception
+                    );
+            return null;
+        }
+
     }
 
     /**
@@ -159,7 +167,7 @@ public interface OwnershipAnnotationDefinition {
     }
 
     @Getter(PACKAGE)
-    @RequiredArgsConstructor(access = PRIVATE)
+    @RequiredArgsConstructor
     final class OwnershipData {
 
         private final String owner;
