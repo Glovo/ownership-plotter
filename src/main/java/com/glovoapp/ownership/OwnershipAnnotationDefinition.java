@@ -1,7 +1,6 @@
 package com.glovoapp.ownership;
 
 import static java.util.Collections.emptyMap;
-import static java.util.Collections.emptySet;
 import static java.util.stream.Collectors.toMap;
 import static lombok.AccessLevel.PACKAGE;
 import static lombok.AccessLevel.PRIVATE;
@@ -55,10 +54,10 @@ public interface OwnershipAnnotationDefinition {
                                                                        @NonNull final Function<A, ?> ownerGetter,
                                                                        @NonNull final Function<A, Map<String, ?>> metaDataGetter) {
         return givenElement -> {
-            Optional<A> a = Optional.ofNullable(givenElement).map(it -> extraceAnnoation(it, annotationClass));
+            Optional<A> a = Optional.ofNullable(givenElement).map(it -> extractAnnoation(it, annotationClass));
 
             if (!a.isPresent()) {
-                return Optional.of(new OwnershipData("nobody", emptyMap()));
+                return Optional.of(new OwnershipData("UNKNOWN", emptyMap()));
             }
             return a.map(annotation -> {
                 try {
@@ -73,7 +72,9 @@ public interface OwnershipAnnotationDefinition {
         };
     }
 
-    static  <A extends Annotation> A extraceAnnoation (AnnotatedElement it, Class<A> annotationClass) {
+    //TODO split it in a separate class, provide two strategies: strict (doesnt return ownersip info if annotation not present
+    //and inclusive (retuns a fallback ownership info for not anotated classes
+    static  <A extends Annotation> A extractAnnoation(AnnotatedElement it, Class<A> annotationClass) {
         try {
             return Optional.of(annotationClass)
                     .map(it::getAnnotation)

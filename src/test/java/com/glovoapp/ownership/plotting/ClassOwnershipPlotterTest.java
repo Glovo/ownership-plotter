@@ -124,24 +124,17 @@ class ClassOwnershipPlotterTest {
         new ClassOwnershipPlotter(
                 new ReflectionsClasspathLoader(),
                 new AnnotationBasedClassOwnershipExtractor(define(OwnerWithContextAnnotation.class, OwnerWithContextAnnotation::boundedContext)),
-/*                DomainOwnershipFilter.simple(
-                        isOwnedBy(desiredContext)
-                                //.or(hasDependenciesOwnedBy(desiredContext))
-                                .or(isADependencyOfAClassThat(isOwnedBy(desiredContext)))
-                ),
-
-*/
                 DomainOwnershipFilter.simple(
                         isADependencyOfAClassThat(isOwnedBy(desiredContext))
                                 .or(hasDependenciesWithOwnerOtherThan(desiredContext))
                                 .or(hasDependenciesOwnedBy("nobody"))
 
                 ),
-                packageDiagramePipeline()
+                packageDiagramPipeline()
         ).createClasspathDiagram("com.glovoapp.ownership.example2");
     }
 
-    private static OwnershipDiagramPipeline packageDiagramePipeline() {
+    private static OwnershipDiagramPipeline packageDiagramPipeline() {
         return OwnershipDiagramPipeline.of(
                 new PlantUMLIdentifierGenerator(),
                 new RelationshipsDiagramDataFactory(),
