@@ -1,0 +1,1 @@
+package com.glovoapp.ownership.notannotatedpackage;

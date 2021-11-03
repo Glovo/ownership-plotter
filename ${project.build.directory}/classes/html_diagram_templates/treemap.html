@@ -1,0 +1,249 @@
+<html lang="en">
+  <head>
+    <title>Glovo Ownership plotter</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <script src="https://cdn.anychart.com/releases/v8/js/anychart-core.min.js"></script>
+    <script src="https://cdn.anychart.com/releases/v8/js/anychart-treemap.min.js"></script>
+    <meta name="rawDiagramData" content="" />
+  </head>
+  <body>
+    <div id="viewport">
+      <div id="navigation">
+        <div id="navigationTopButton">
+          <span id="navigationTopLabel" class="navigstion-link">⛳️ Top</span>
+        </div>
+        <div id="navigationTeamButton">
+          <span>👥 Team :</span>
+          <span id="navigationTeamLabel" class="navigstion-link">--</span>
+        </div>
+        <div id="navigationDomainButton">
+          <span>🌎 Domain :</span>
+          <span id="navigationDomainLabel" clasS="navigstion-link">--</span>
+        </div>
+        <div id="navigationClassButton">
+          <span>📦 Class :</span>
+          <span id="navigationClassLabel" class="navigstion-link">--</span>
+        </div>
+      </div>
+      <div id="chart">
+        <!-- graph will be rendered here-->
+      </div>
+    </div>
+  </body>
+  <script lang="javascript">
+    /***************************************************************************
+     *
+     *  GLOBAL VARS
+     *
+     **************************************************************************/
+    let chart
+    let currentLocation = []
+    const DOMRef = {
+      rawDiagramData : document.querySelector(`meta[name="rawDiagramData"]`),
+      navigationTopLabel : document.getElementById('navigationTopLabel'),
+      navigationTeamLabel: document.getElementById('navigationTeamLabel'),
+      navigationDomainLabel: document.getElementById('navigationDomainLabel'),
+      navigationClassLabel: document.getElementById('navigationClassLabel'),
+      navigationTopButton : document.getElementById('navigationTopButton'),
+      navigationTeamButton: document.getElementById('navigationTeamButton'),
+      navigationDomainButton: document.getElementById('navigationDomainButton'),
+      navigationClassButton: document.getElementById('navigationClassButton'),
+    }
+    const ChartLevel = {
+      TOP : 0,
+      TEAM : 1,
+      DOMAIN : 2,
+      CLASS : 3
+    }
+
+    /***************************************************************************
+     *
+     *  HELPER METHODS
+     *
+     **************************************************************************/
+
+    /**
+     * Method used in dev environment, to fetch data form json file
+     */
+    async function fetchChartData() {
+      const response = await fetch('/data.json')
+      const data = await response.json()
+      return data
+    }
+
+    /**
+     * Extracts raw chart data from the DOMRef.rawDiagramData element,
+     * parses it and returns it
+     */
+    const getChartData = () => {
+      if (DOMRef.rawDiagramData === null) throw new Error('Could not find element containing Chart raw data')
+      const stringifiedData = DOMRef.rawDiagramData.content
+      const data = JSON.parse(stringifiedData)
+      return data
+    }
+
+    /**
+     * Recursive method to map each one of the nodes to a normalized
+     * data structure ready to be consumed by anyChart
+     */
+    function mapData(original, acc, level=0) {
+      const mapped = {
+        name: original.name,
+        children: [],
+        value: 1, // anyChart will calculate it automatically
+        level: level // maps to ChartLevel values
+      }
+      acc.push(mapped)
+      for (const child of original.nestedComponents) {
+        const mappedChildren = mapData(
+          child,
+          mapped.children,
+          level+1
+        )
+      }
+      return acc
+    }
+
+    /**
+     * Creates the root level and iterates the first level of data
+     * performing the necessary mapping
+     */
+    function normalizeChartData(rawData){
+      let nodes = [ { name: 'top', children: [] } ]
+      for (const original of rawData.topLevelComponents) {
+        nodes[0].children.push(...mapData(original, []))
+      }
+      return nodes
+    }
+
+    /**
+     * Event handler used by the Navigator buttons. Renders the requested
+     * chart level
+     */
+    function navigateToLevel(level){
+      chart.drillTo(currentLocation[level].node)
+    }
+
+    /**
+     * Event handler used by the chart when a node is clicked. Stores
+     * the active level in the currentLocation global variable, and updates
+     * the labels in the navigation bar
+     */
+    function setCurrentLocation(){
+      currentLocation = chart.getDrilldownPath()
+      DOMRef.navigationTeamLabel.innerHTML = currentLocation[1]?.get('name') || '--'
+      DOMRef.navigationDomainLabel.innerHTML = currentLocation[2]?.get('name') || '--'
+      DOMRef.navigationClassLabel.innerHTML = currentLocation[3]?.get('name') || '--'
+    }
+
+    /**
+     * Initialized the navigation bar by adding the necessary click
+     * event listeners
+     */
+    function initializeNavigationBar(){
+      DOMRef.navigationTopButton.addEventListener('click', ()=> navigateToLevel(ChartLevel.TOP))
+      DOMRef.navigationTeamButton.addEventListener('click', ()=> navigateToLevel(ChartLevel.TEAM))
+      DOMRef.navigationDomainButton.addEventListener('click', ()=> navigateToLevel(ChartLevel.DOMAIN))
+      DOMRef.navigationClassButton.addEventListener('click', ()=> navigateToLevel(ChartLevel.CLASS))
+    }
+
+    /**
+     * Initializes the Chart, by applying the necessary styles, event listeners
+     * and chart data injection.  AnyChart treeMap documentation :
+     * https://docs.anychart.com/Basic_Charts/Treemap_Chart
+     */
+    function initializeChart(normalizedData){
+      const chartData = anychart.data.tree(normalizedData, 'as-tree')
+      chart = anychart.treeMap(chartData);
+      chart.headers(false);
+      chart.normal().stroke('transparent',4)
+      chart.hovered().stroke('transparent',4)
+      chart.selected().stroke('transparent', 4)
+      chart.background().fill('transparent')
+      chart.selected().fill('transparent')
+      chart.selected().stroke('white', 1)
+      chart.tooltip().format('')
+      chart.labels().useHtml(true)
+      chart.labels().format( function () {
+        const nodeLevel = this.getData('level')
+        return nodeLevel < 3
+         ? `<span style='font-weight:bold'>${this.name}</span><br/><span>${this.value} methods</span>`
+         : `<span style='font-weight:bold'>${this.name}</span><br/><span>⨍</span>`
+      });
+      chart.listen('chartDraw', setCurrentLocation )
+      chart.listen('pointClick', (e) => false )
+      chart.container('chart')
+      chart.draw()
+    }
+
+    /***************************************************************************
+     *
+     *  INITIALIZATION
+     *
+     **************************************************************************/
+    anychart.onDocumentReady(async ()=> {
+      initializeNavigationBar()
+      const isDevMode = location.hostname === '127.0.0.1'
+      const rawData = isDevMode
+       ? await fetchChartData() // fetch from local /data.json file on dev env
+       : await getChartData() // recover data from injected element on production
+      const normalizedChartData = normalizeChartData(rawData)
+      initializeChart(normalizedChartData)
+    } )
+  </script>
+
+  <style>
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0px;
+      font-family: Verdana;
+      background-color: #88beea;
+    }
+
+    .anychart-credits {
+      display: none;
+    }
+
+    #viewport {
+      width: 100%;
+      height: 100%;
+      display: grid;
+      grid-template-columns: 1fr;
+      grid-template-rows: auto 1fr;
+    }
+
+    #chart {
+      width: 100%;
+      height: 100%;
+      padding: 0px;
+      padding: 0px;
+    }
+
+    #navigation {
+      gap: 0px;
+      margin-left: 12px;
+      margin-top: 20px;
+      text-align: center;
+    }
+
+    .navigstion-link {
+      font-weight: 800;
+    }
+
+    #navigation > div {
+      border: 1px solid #61a2d8;
+      padding: 6px;
+      padding-right: 20px;
+      cursor: pointer;
+      display: inline-block;
+      font-size: 12px;
+    }
+
+    #navigation > div:hover {
+      background-color: #4991ca;
+    }
+  </style>
+</html>

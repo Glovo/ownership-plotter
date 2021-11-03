@@ -1,0 +1,24 @@
+<html lang="en">
+<!--head must be declared on top to preserve the order of tags so raw diagram data is visible in the script-->
+<head>
+  <title>Example HTML diagram</title>
+</head>
+<body>
+<pre id="diagram"></pre>
+</body>
+<script lang="javascript">
+  const diagramData = (() => {
+    const rawDiagramDataElementName = 'rawDiagramData';
+    const rawDiagramDataElement = document.querySelector(`meta[name="${rawDiagramDataElementName}"]`);
+    if (rawDiagramDataElement === null) {
+      throw new Error(`required element could not be found: ${rawDiagramDataElementName}`);
+    }
+    const rawDiagramData = rawDiagramDataElement.content;
+    const diagramData = JSON.parse(rawDiagramData);
+    rawDiagramDataElement.remove();
+    return diagramData;
+  })();
+
+  document.getElementById('diagram').textContent = `diagram data is:\n${JSON.stringify(diagramData, null, 2)}`;
+</script>
+</html>

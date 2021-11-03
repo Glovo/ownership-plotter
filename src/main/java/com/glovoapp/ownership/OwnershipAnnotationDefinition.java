@@ -53,6 +53,7 @@ public interface OwnershipAnnotationDefinition {
     static <A extends Annotation> OwnershipAnnotationDefinition define(@NonNull final Class<A> annotationClass,
                                                                        @NonNull final Function<A, ?> ownerGetter,
                                                                        @NonNull final Function<A, Map<String, ?>> metaDataGetter) {
+        ParentPackageAnnotationScanner<A> parentPackageAnnotationScanner = new ParentPackageAnnotationScanner(annotationClass);
         return givenElement -> Optional.ofNullable(givenElement)
                                        .map(it -> {
                                            try {
@@ -61,8 +62,12 @@ public interface OwnershipAnnotationDefinition {
                                                               .orElseGet(() -> {
                                                                   if (it instanceof Class) {
                                                                       final Class<?> theClass = (Class<?>) it;
-                                                                      if (theClass.getSimpleName()
-                                                                                  .startsWith("lambda$")) {
+
+                                                                      //ignore lambdas and package-info
+                                                                      String name = theClass.getSimpleName();
+                                                                      if (name.startsWith("lambda$")
+                                                                              || name.startsWith("package-info")
+                                                                      ) {
                                                                           return null;
                                                                       }
                                                                       return theClass
@@ -95,7 +100,11 @@ public interface OwnershipAnnotationDefinition {
                                                                               .getAnnotation(annotationClass);
                                                                       }
                                                                   } else {
-                                                                      return null;
+                                                                      //if annotation not found in method/class/package
+                                                                      //go up in package hierarchy
+                                                                      return parentPackageAnnotationScanner
+                                                                              .scan(it)
+                                                                              .orElse(null);
                                                                   }
                                                               });
                                            } catch (final Exception exception) {
