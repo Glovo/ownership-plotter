@@ -59,54 +59,9 @@ public interface OwnershipAnnotationDefinition {
                                            try {
                                                return Optional.of(annotationClass)
                                                               .map(it::getAnnotation)
-                                                              .orElseGet(() -> {
-                                                                  if (it instanceof Class) {
-                                                                      final Class<?> theClass = (Class<?>) it;
-
-                                                                      //ignore lambdas and package-info
-                                                                      String name = theClass.getSimpleName();
-                                                                      if (name.startsWith("lambda$")
-                                                                              || name.startsWith("package-info")
-                                                                      ) {
-                                                                          return null;
-                                                                      }
-                                                                      return theClass
-                                                                          .getPackage()
-                                                                          .getAnnotation(annotationClass);
-                                                                  } else if (it instanceof Method) {
-                                                                      final Method method = (Method) it;
-
-                                                                      // ignore inherited methods
-                                                                      if (Arrays.stream(method.getDeclaringClass()
-                                                                                              .getDeclaredMethods())
-                                                                                .noneMatch(method::equals)
-                                                                          || method.getName()
-                                                                                   .startsWith("$jacoco")
-                                                                          || method.getName()
-                                                                                   .startsWith("lambda$")
-                                                                      ) {
-                                                                          return null;
-                                                                      }
-
-                                                                      final A declaringClassAnnotation = method
-                                                                          .getDeclaringClass()
-                                                                          .getAnnotation(annotationClass);
-                                                                      if (declaringClassAnnotation != null) {
-                                                                          return declaringClassAnnotation;
-                                                                      } else {
-                                                                          return method
-                                                                              .getDeclaringClass()
-                                                                              .getPackage()
-                                                                              .getAnnotation(annotationClass);
-                                                                      }
-                                                                  } else {
-                                                                      //if annotation not found in method/class/package
-                                                                      //go up in package hierarchy
-                                                                      return parentPackageAnnotationScanner
-                                                                              .scan(it)
-                                                                              .orElse(null);
-                                                                  }
-                                                              });
+                                                              .orElseGet(() -> annotationScanner(annotationClass, it)
+                                                              .orElseGet(() -> parentPackageAnnotationScanner.scan(it)
+                                                              .orElse(null)));
                                            } catch (final Exception exception) {
                                                LoggerFactory.getLogger(OwnershipAnnotationDefinition.class)
                                                             .warn(
@@ -128,6 +83,52 @@ public interface OwnershipAnnotationDefinition {
                                                throw new OwnerFetchingException(ownerGetterInvocationException);
                                            }
                                        });
+    }
+
+    //TODO extract to class and make interface
+    static <A extends Annotation> Optional<A> annotationScanner(Class<A> annotationClass, AnnotatedElement it) {
+        if (it instanceof Class) {
+            final Class<?> theClass = (Class<?>) it;
+
+            //ignore lambdas and package-info
+            String name = theClass.getSimpleName();
+            if (name.startsWith("lambda$")
+                    || name.startsWith("package-info")
+            ) {
+                return Optional.empty();
+            }
+            return Optional.of(theClass
+                    .getPackage()
+                    .getAnnotation(annotationClass));
+        } else if (it instanceof Method) {
+            final Method method = (Method) it;
+
+            // ignore inherited methods
+            if (Arrays.stream(method.getDeclaringClass()
+                            .getDeclaredMethods())
+                    .noneMatch(method::equals)
+                    || method.getName()
+                    .startsWith("$jacoco")
+                    || method.getName()
+                    .startsWith("lambda$")
+            ) {
+                return Optional.empty();
+            }
+
+            final A declaringClassAnnotation = method
+                    .getDeclaringClass()
+                    .getAnnotation(annotationClass);
+            if (declaringClassAnnotation != null) {
+                return Optional.of(declaringClassAnnotation);
+            } else {
+                return Optional.of(method
+                        .getDeclaringClass()
+                        .getPackage()
+                        .getAnnotation(annotationClass));
+            }
+        } else {
+            return Optional.empty();
+        }
     }
 
     /**
