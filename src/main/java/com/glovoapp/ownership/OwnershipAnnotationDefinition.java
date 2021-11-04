@@ -97,7 +97,7 @@ public interface OwnershipAnnotationDefinition {
             ) {
                 return Optional.empty();
             }
-            return Optional.of(theClass
+            return Optional.ofNullable(theClass
                     .getPackage()
                     .getAnnotation(annotationClass));
         } else if (it instanceof Method) {
@@ -119,9 +119,9 @@ public interface OwnershipAnnotationDefinition {
                     .getDeclaringClass()
                     .getAnnotation(annotationClass);
             if (declaringClassAnnotation != null) {
-                return Optional.of(declaringClassAnnotation);
+                return Optional.ofNullable(declaringClassAnnotation);
             } else {
-                return Optional.of(method
+                return Optional.ofNullable(method
                         .getDeclaringClass()
                         .getPackage()
                         .getAnnotation(annotationClass));
