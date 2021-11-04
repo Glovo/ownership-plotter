@@ -1,17 +1,16 @@
 package com.glovoapp.ownership;
 
+import lombok.RequiredArgsConstructor;
+
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Method;
 import java.util.Optional;
 
-public class ParentPackageAnnotationScanner<A extends Annotation> {
+@RequiredArgsConstructor
+public final class ParentPackageAnnotationScanner<A extends Annotation> {
 
-    private Class<A> annotationClass;
-
-    public ParentPackageAnnotationScanner(Class<A> annotationClass) {
-        this.annotationClass = annotationClass;
-    }
+    private final Class<A> annotationClass;
 
     public Optional<A> scan(AnnotatedElement element){
 
@@ -48,7 +47,7 @@ public class ParentPackageAnnotationScanner<A extends Annotation> {
         return Optional.empty();
     }
 
-    public String getSuperPackageName(String packageName) {
+    String getSuperPackageName(String packageName) {
         return packageName.substring(0, Math.max(packageName.lastIndexOf('.'), 0));
     }
 }
