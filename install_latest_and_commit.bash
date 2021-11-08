@@ -41,6 +41,6 @@ artifactSlug="${projectGroupId}:${projectArtifactId}:${projectVersion}"
 
 # Create a commit
 git add "${artifactDirectory}"
-git commit "${artifactDirectory}" -m "Install ${artifactSlug}"
+git commit "${artifactDirectory}" -S -m "Install ${artifactSlug}"
 
 echo "Installation of ${artifactSlug} complete"
