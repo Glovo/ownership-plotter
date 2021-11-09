@@ -17,7 +17,7 @@ public class CachedParentPackageAnnotationScanner <A extends Annotation> impleme
 
     @Override
     public Optional<A> scan(AnnotatedElement element) {
-        Optional<String> optionalPackageName =  getPackageName(element);
+        Optional<String> optionalPackageName =  PackageScanningUtils.getPackageName(element);
 
         if (optionalPackageName.isPresent()) {
             return cache.computeIfAbsent(optionalPackageName.get(), (k) -> delegate.scan(element));
@@ -26,17 +26,4 @@ public class CachedParentPackageAnnotationScanner <A extends Annotation> impleme
         return Optional.empty();
 
     }
-
-    public Optional<String> getPackageName(AnnotatedElement element) {
-
-        if (element instanceof Class) {
-            return Optional.of(((Class<?>) element).getPackage().getName());
-        }
-        else if (element instanceof Method) {
-            return Optional.of(((Method) element).getDeclaringClass().getPackage().getName());
-        }
-
-        return Optional.empty();
-    }
-
 }

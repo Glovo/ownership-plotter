@@ -19,10 +19,10 @@ public final class ParentPackageAnnotationScanner<A extends Annotation> implemen
 
         log.info("executing ParentPackageAnnotationScanner on element {}", element.toString());
 
-        String packageName = getPackageName(element).orElse("");
+        String packageName = PackageScanningUtils.getPackageName(element).orElse("");
 
         while (packageName.length() > 0) {
-            packageName = getSuperPackageName(packageName);
+            packageName = PackageScanningUtils.getSuperPackageName(packageName);
 
             Class<?> packageInfo = null;
             try {
@@ -38,21 +38,5 @@ public final class ParentPackageAnnotationScanner<A extends Annotation> implemen
         }
 
         return Optional.empty();
-    }
-
-    public Optional<String> getPackageName(AnnotatedElement element) {
-
-        if (element instanceof Class) {
-            return Optional.of(((Class<?>) element).getPackage().getName());
-        }
-        else if (element instanceof Method) {
-            return Optional.of(((Method) element).getDeclaringClass().getPackage().getName());
-        }
-
-        return Optional.empty();
-    }
-
-    String getSuperPackageName(String packageName) {
-        return packageName.substring(0, Math.max(packageName.lastIndexOf('.'), 0));
     }
 }
