@@ -5,12 +5,11 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
-import java.lang.reflect.Method;
 import java.util.Optional;
 
 @Slf4j
 @RequiredArgsConstructor
-public final class ParentPackageAnnotationScanner<A extends Annotation> implements AnnotationScanner<A> {
+public class ParentPackageAnnotationScanner<A extends Annotation> implements AnnotationScanner<A> {
 
     private final Class<A> annotationClass;
 
