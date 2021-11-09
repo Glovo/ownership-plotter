@@ -1,4 +1,4 @@
-package com.glovoapp.ownership;
+package com.glovoapp.ownership.scanning;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

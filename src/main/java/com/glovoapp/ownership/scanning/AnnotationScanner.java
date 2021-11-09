@@ -1,4 +1,4 @@
-package com.glovoapp.ownership;
+package com.glovoapp.ownership.scanning;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;

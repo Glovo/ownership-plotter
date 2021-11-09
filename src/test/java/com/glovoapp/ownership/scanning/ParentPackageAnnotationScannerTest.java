@@ -1,8 +1,9 @@
-package com.glovoapp.ownership;
+package com.glovoapp.ownership.scanning;
 
 import com.glovoapp.ownership.examples.ExampleOwnershipAnnotation;
 import com.glovoapp.ownership.examples.parentpackage.childpackage.NotAnnotatedClass;
 import com.glovoapp.ownership.notannotatedpackage.childpackage.ClassInNotAnnotatedPackage;
+import com.glovoapp.ownership.scanning.ParentPackageAnnotationScanner;
 import lombok.var;
 import org.junit.jupiter.api.Test;
 
