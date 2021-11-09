@@ -24,7 +24,7 @@ class CachedParentPackageAnnotationScannerTest {
         scanner.scan(NotAnnotatedClass.class);
         scanner.scan(AnotherNotAnnotatedClass.class);
 
-        verify(delegate, times(1)).scan((any()));
+        verify(delegate, times(1)).scan(NotAnnotatedClass.class);
 
     }
 
