@@ -53,7 +53,11 @@ public interface OwnershipAnnotationDefinition {
     static <A extends Annotation> OwnershipAnnotationDefinition define(@NonNull final Class<A> annotationClass,
                                                                        @NonNull final Function<A, ?> ownerGetter,
                                                                        @NonNull final Function<A, Map<String, ?>> metaDataGetter) {
-        ParentPackageAnnotationScanner<A> parentPackageAnnotationScanner = new ParentPackageAnnotationScanner(annotationClass);
+        AnnotationScanner<A> parentPackageAnnotationScanner =
+                new CachedParentPackageAnnotationScanner<A>(
+                        new ParentPackageAnnotationScanner(annotationClass)
+                );
+
         return givenElement -> Optional.ofNullable(givenElement)
                                        .map(it -> {
                                            try {
