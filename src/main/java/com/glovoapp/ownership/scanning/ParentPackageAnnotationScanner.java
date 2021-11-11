@@ -23,7 +23,7 @@ public class ParentPackageAnnotationScanner<A extends Annotation> implements Ann
         while (packageName.length() > 0) {
             packageName = PackageScanningUtils.getSuperPackageName(packageName);
 
-            Class<?> packageInfo = null;
+            Class<?> packageInfo;
             try {
                 packageInfo = Class.forName(packageName+".package-info", false, ParentPackageAnnotationScanner.class.getClassLoader());
                 if (packageInfo.getPackage().isAnnotationPresent(annotationClass)) {
