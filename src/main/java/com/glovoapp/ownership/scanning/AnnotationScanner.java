@@ -5,5 +5,5 @@ import java.lang.reflect.AnnotatedElement;
 import java.util.Optional;
 
 public interface AnnotationScanner<A extends Annotation> {
-    Optional<A> scan(AnnotatedElement element);
+    Optional<A> scan(final AnnotatedElement element);
 }
