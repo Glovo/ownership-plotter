@@ -16,13 +16,9 @@ public class CachedParentPackageAnnotationScanner <A extends Annotation> impleme
 
     @Override
     public Optional<A> scan(AnnotatedElement element) {
-        Optional<String> optionalPackageName =  PackageScanningUtils.getPackageName(element);
-
-        if (optionalPackageName.isPresent()) {
-            return cache.computeIfAbsent(optionalPackageName.get(), (k) -> delegate.scan(element));
-        }
-
-        return Optional.empty();
-
+        return PackageScanningUtils.getPackageName(element)
+                                   .flatMap(packageName -> cache.computeIfAbsent(packageName,
+                                       ignored -> delegate.scan(element)
+                                   ));
     }
 }
