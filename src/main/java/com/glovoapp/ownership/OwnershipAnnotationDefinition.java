@@ -5,6 +5,9 @@ import static java.util.stream.Collectors.toMap;
 import static lombok.AccessLevel.PACKAGE;
 import static lombok.AccessLevel.PRIVATE;
 
+import com.glovoapp.ownership.scanning.AnnotationScanner;
+import com.glovoapp.ownership.scanning.CachedParentPackageAnnotationScanner;
+import com.glovoapp.ownership.scanning.ParentPackageAnnotationScanner;
 import com.glovoapp.ownership.shared.Pair;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
@@ -53,7 +56,11 @@ public interface OwnershipAnnotationDefinition {
     static <A extends Annotation> OwnershipAnnotationDefinition define(@NonNull final Class<A> annotationClass,
                                                                        @NonNull final Function<A, ?> ownerGetter,
                                                                        @NonNull final Function<A, Map<String, ?>> metaDataGetter) {
-        ParentPackageAnnotationScanner<A> parentPackageAnnotationScanner = new ParentPackageAnnotationScanner(annotationClass);
+        AnnotationScanner<A> parentPackageAnnotationScanner =
+                new CachedParentPackageAnnotationScanner<>(
+                        new ParentPackageAnnotationScanner<>(annotationClass)
+                );
+
         return givenElement -> Optional.ofNullable(givenElement)
                                        .map(it -> {
                                            try {
