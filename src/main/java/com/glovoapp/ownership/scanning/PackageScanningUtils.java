@@ -4,7 +4,8 @@ import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Method;
 import java.util.Optional;
 
-public class PackageScanningUtils {
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+final class PackageScanningUtils {
 
     static Optional<String> getPackageName(AnnotatedElement element) {
 
