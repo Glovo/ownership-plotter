@@ -14,7 +14,7 @@ public class ParentPackageAnnotationScanner<A extends Annotation> implements Ann
     private final Class<A> annotationClass;
 
     @Override
-    public Optional<A> scan(AnnotatedElement element){
+    public Optional<A> scan(AnnotatedElement element) {
 
         log.info("executing ParentPackageAnnotationScanner on element {}", element.toString());
 
@@ -25,7 +25,7 @@ public class ParentPackageAnnotationScanner<A extends Annotation> implements Ann
 
             Class<?> packageInfo;
             try {
-                packageInfo = Class.forName(packageName+".package-info", false, ParentPackageAnnotationScanner.class.getClassLoader());
+                packageInfo = Class.forName(packageName + ".package-info", false, ParentPackageAnnotationScanner.class.getClassLoader());
                 if (packageInfo.getPackage().isAnnotationPresent(annotationClass)) {
                     return Optional.of(packageInfo.getAnnotation(annotationClass));
                 }

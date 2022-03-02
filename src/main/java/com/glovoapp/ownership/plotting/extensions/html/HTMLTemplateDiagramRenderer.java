@@ -1,23 +1,24 @@
 package com.glovoapp.ownership.plotting.extensions.html;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
-
 import com.glovoapp.diagrams.Diagram;
 import com.glovoapp.diagrams.DiagramRenderer;
 import com.glovoapp.ownership.plotting.ClassRelationship;
 import com.glovoapp.ownership.shared.BufferedDiagramDataSink;
 import com.glovoapp.ownership.shared.SerializingDiagramRenderer;
 import com.glovoapp.ownership.shared.UUIDIdentifier;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
-import java.util.Locale;
-import java.util.Optional;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.util.Locale;
+import java.util.Optional;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 @Slf4j
 public final class HTMLTemplateDiagramRenderer implements DiagramRenderer<UUIDIdentifier, ClassRelationship> {
@@ -42,9 +43,9 @@ public final class HTMLTemplateDiagramRenderer implements DiagramRenderer<UUIDId
     public HTMLTemplateDiagramRenderer(final Template template,
                                        final SerializingDiagramRenderer<UUIDIdentifier, ClassRelationship> delegate) {
         this(
-            HTMLTemplateDiagramRenderer.class.getClassLoader()
-                                             .getResourceAsStream(template.getTemplateResourceName()),
-            delegate
+                HTMLTemplateDiagramRenderer.class.getClassLoader()
+                        .getResourceAsStream(template.getTemplateResourceName()),
+                delegate
         );
     }
 
@@ -61,22 +62,22 @@ public final class HTMLTemplateDiagramRenderer implements DiagramRenderer<UUIDId
 
     @Override
     @SneakyThrows
-    public final InputStream renderDiagram(final Diagram<UUIDIdentifier, ClassRelationship> diagram) {
+    public InputStream renderDiagram(final Diagram<UUIDIdentifier, ClassRelationship> diagram) {
         final Document htmlDiagram = htmlTemplate.clone();
 
         final Element rawDiagramDataElement = Optional
-            .ofNullable(
-                htmlDiagram.getElementsByAttributeValue("name", RAW_DIAGRAM_DATA_META_ELEMENT_ID)
-                           .addClass("meta")
-                           .first()
-            )
-            .orElseGet(() -> {
-                final Element newElement = htmlDiagram.createElement("meta");
-                newElement.attr("name", RAW_DIAGRAM_DATA_META_ELEMENT_ID);
-                htmlDiagram.head()
-                           .appendChild(newElement);
-                return newElement;
-            });
+                .ofNullable(
+                        htmlDiagram.getElementsByAttributeValue("name", RAW_DIAGRAM_DATA_META_ELEMENT_ID)
+                                .addClass("meta")
+                                .first()
+                )
+                .orElseGet(() -> {
+                    final Element newElement = htmlDiagram.createElement("meta");
+                    newElement.attr("name", RAW_DIAGRAM_DATA_META_ELEMENT_ID);
+                    htmlDiagram.head()
+                            .appendChild(newElement);
+                    return newElement;
+                });
 
         final InputStream serializedDiagram = delegate.renderDiagram(diagram);
         final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
@@ -85,7 +86,7 @@ public final class HTMLTemplateDiagramRenderer implements DiagramRenderer<UUIDId
         rawDiagramDataElement.attr("content", outputStream.toString());
 
         return new ByteArrayInputStream(htmlDiagram.toString()
-                                                   .getBytes(UTF_8));
+                .getBytes(UTF_8));
     }
 
 

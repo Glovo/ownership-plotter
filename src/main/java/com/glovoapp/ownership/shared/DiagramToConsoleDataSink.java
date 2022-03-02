@@ -1,6 +1,7 @@
 package com.glovoapp.ownership.shared;
 
 import com.glovoapp.diagrams.DiagramDataSink;
+
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 

@@ -1,18 +1,15 @@
 package com.glovoapp.ownership.classpath;
 
-import static java.lang.Thread.currentThread;
-import static java.util.stream.Collectors.toSet;
-
-import java.lang.reflect.Field;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
-import java.util.Vector;
-import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+
+import java.lang.reflect.Field;
+import java.util.*;
+import java.util.stream.Stream;
+
+import static java.lang.Thread.currentThread;
+import static java.util.stream.Collectors.toSet;
 
 /**
  * Uses all currently loaded classes as the classpath definition. This version of {@link ClasspathLoader} is much more
@@ -40,17 +37,17 @@ public final class ClassLoaderClasspathLoader implements ClasspathLoader {
         final Field classesField = ClassLoader.class.getDeclaredField("classes");
         classesField.setAccessible(true);
         @SuppressWarnings("unchecked") final Vector<Class<?>> classesVector
-            = (Vector<Class<?>>) classesField.get(classLoader);
+                = (Vector<Class<?>>) classesField.get(classLoader);
         final Set<Class<?>> classesSet = new HashSet<>(classesVector);
         final Set<Class<?>> parentClassesSet = Optional.of(classLoader)
-                                                       .map(ClassLoader::getParent)
-                                                       .map(ClassLoaderClasspathLoader::new)
-                                                       .map(parentLoader -> parentLoader.loadAllClasses(packagePrefix))
-                                                       .orElseGet(Collections::emptySet);
+                .map(ClassLoader::getParent)
+                .map(ClassLoaderClasspathLoader::new)
+                .map(parentLoader -> parentLoader.loadAllClasses(packagePrefix))
+                .orElseGet(Collections::emptySet);
         return Stream.concat(classesSet.stream(), parentClassesSet.stream())
-                     .filter(ClassLoaderClasspathLoader::isProperlyLoaded)
-                     .filter(theClass -> classIsInPackageWithPrefix(theClass, packagePrefix))
-                     .collect(toSet());
+                .filter(ClassLoaderClasspathLoader::isProperlyLoaded)
+                .filter(theClass -> classIsInPackageWithPrefix(theClass, packagePrefix))
+                .collect(toSet());
     }
 
     private static boolean isProperlyLoaded(final Class<?> theClass) {
@@ -64,10 +61,10 @@ public final class ClassLoaderClasspathLoader implements ClasspathLoader {
 
     private static boolean classIsInPackageWithPrefix(final Class<?> theClass, final String packagePrefix) {
         return Optional.of(theClass)
-                       .map(Class::getPackage)
-                       .map(Package::getName)
-                       .map(packageName -> packageName.startsWith(packagePrefix))
-                       .orElse(false);
+                .map(Class::getPackage)
+                .map(Package::getName)
+                .map(packageName -> packageName.startsWith(packagePrefix))
+                .orElse(false);
     }
 
 }

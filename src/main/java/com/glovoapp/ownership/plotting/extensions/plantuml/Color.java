@@ -1,11 +1,12 @@
 package com.glovoapp.ownership.plotting.extensions.plantuml;
 
-import static java.util.Arrays.asList;
+import lombok.EqualsAndHashCode;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
-import lombok.EqualsAndHashCode;
+
+import static java.util.Arrays.asList;
 
 
 @EqualsAndHashCode
@@ -26,9 +27,9 @@ final class Color {
      */
     Color(final int cyan, final int magenta, final int yellow, final int black) {
         this(
-            (int) (255 * (1.0 - cyan / 100.0) * (1.0 - black / 100.0)),
-            (int) (255 * (1.0 - magenta / 100.0) * (1.0 - black / 100.0)),
-            (int) (255 * (1.0 - yellow / 100.0) * (1.0 - black / 100.0))
+                (int) (255 * (1.0 - cyan / 100.0) * (1.0 - black / 100.0)),
+                (int) (255 * (1.0 - magenta / 100.0) * (1.0 - black / 100.0)),
+                (int) (255 * (1.0 - yellow / 100.0) * (1.0 - black / 100.0))
         );
     }
 
@@ -77,7 +78,7 @@ final class Color {
 
     private static String hexPart(final int value) {
         final String asHex = Integer.toHexString(value)
-                                    .toUpperCase();
+                .toUpperCase();
         if (asHex.length() > 2) {
             throw new IllegalArgumentException("cannot write " + value + " as hex part; result too long: " + asHex);
         }

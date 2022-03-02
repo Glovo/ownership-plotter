@@ -1,9 +1,10 @@
 package com.glovoapp.diagrams;
 
-import java.util.Set;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+
+import java.util.Set;
 
 public interface Component<Id extends Identifier<Id>> extends Identifiable<Id> {
 

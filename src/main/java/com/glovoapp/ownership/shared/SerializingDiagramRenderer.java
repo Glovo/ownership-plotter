@@ -10,19 +10,20 @@ import com.glovoapp.diagrams.Diagram;
 import com.glovoapp.diagrams.DiagramRenderer;
 import com.glovoapp.diagrams.Identifier;
 import com.glovoapp.ownership.plotting.extensions.plantuml.PlantUMLIdentifier;
+import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.function.Function;
-import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 
 /**
  * Simple renderer that outputs the diagram data as serialized String.
  */
 @RequiredArgsConstructor
 public final class SerializingDiagramRenderer<Id extends Identifier<Id>, RelationshipType>
-    implements DiagramRenderer<Id, RelationshipType> {
+        implements DiagramRenderer<Id, RelationshipType> {
 
     private final Function<Diagram<Id, RelationshipType>, String> serializer;
 
@@ -62,8 +63,8 @@ public final class SerializingDiagramRenderer<Id extends Identifier<Id>, Relatio
     @SneakyThrows
     public final InputStream renderDiagram(final Diagram<Id, RelationshipType> diagram) {
         return new ByteArrayInputStream(
-            serializer.apply(diagram)
-                      .getBytes()
+                serializer.apply(diagram)
+                        .getBytes()
         );
     }
 

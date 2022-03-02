@@ -1,6 +1,9 @@
 package com.glovoapp.ownership;
 
 import com.glovoapp.ownership.shared.LazyReference;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.AbstractMap.SimpleEntry;
@@ -10,8 +13,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Stream;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 
 /**
  * We assume that fields of ClassOwnership are a pre-calculated cache and are immutable. Therefore two {@link
@@ -33,12 +34,12 @@ public final class ClassOwnership {
 
     public final Stream<Entry<Field, ClassOwnership>> getDependencyOwnershipsStream() {
         return dependenciesOwnership.entrySet()
-                                    .stream()
+                .stream()
 
-                                    .map(entry -> mapValue(entry, LazyReference::get))
-                                    .filter(entry -> entry.getValue()
-                                                          .isPresent())
-                                    .map(entry -> mapValue(entry, Optional::get));
+                .map(entry -> mapValue(entry, LazyReference::get))
+                .filter(entry -> entry.getValue()
+                        .isPresent())
+                .map(entry -> mapValue(entry, Optional::get));
     }
 
     @Override
@@ -53,9 +54,9 @@ public final class ClassOwnership {
 
         if (!Objects.equals(this.extractorClass, other.extractorClass)) {
             throw new IllegalArgumentException(
-                "mixing ownerships created with different extractors: "
-                    + this.extractorClass.getSimpleName()
-                    + " and " + other.extractorClass.getSimpleName()
+                    "mixing ownerships created with different extractors: "
+                            + this.extractorClass.getSimpleName()
+                            + " and " + other.extractorClass.getSimpleName()
             );
         }
 

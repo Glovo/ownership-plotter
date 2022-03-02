@@ -1,31 +1,32 @@
 package com.glovoapp.ownership.plotting.extensions.plantuml;
 
-import static lombok.AccessLevel.PACKAGE;
-
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.glovoapp.diagrams.Identifier;
-import java.util.UUID;
+import com.glovoapp.ownership.shared.UUIDIdentifier;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+
+import static lombok.AccessLevel.PACKAGE;
 
 
 @EqualsAndHashCode
 @RequiredArgsConstructor(access = PACKAGE)
 public final class PlantUMLIdentifier implements Identifier<PlantUMLIdentifier> {
 
-    private final UUID delegate;
+    @Getter(PACKAGE)
+    private final UUIDIdentifier delegate;
 
     @Override
-    public final int compareTo(final PlantUMLIdentifier other) {
+    public int compareTo(final PlantUMLIdentifier other) {
         return this.delegate.compareTo(other.delegate);
     }
 
     @Override
     @JsonSerialize
-    public final String toString() {
+    public String toString() {
         // Plant UML IDs do not accept dashes but do accept underscores and alphanumeric characters.
-        return delegate.toString()
-                       .replace('-', '_');
+        return delegate.toString().replace('-', '_');
     }
 
 }

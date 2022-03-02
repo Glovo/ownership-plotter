@@ -1,14 +1,14 @@
 package com.glovoapp.ownership;
 
-import static java.util.Collections.emptyMap;
-import static java.util.stream.Collectors.toMap;
-import static lombok.AccessLevel.PACKAGE;
-import static lombok.AccessLevel.PRIVATE;
-
 import com.glovoapp.ownership.scanning.AnnotationScanner;
 import com.glovoapp.ownership.scanning.CachedParentPackageAnnotationScanner;
 import com.glovoapp.ownership.scanning.ParentPackageAnnotationScanner;
 import com.glovoapp.ownership.shared.Pair;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import org.slf4j.LoggerFactory;
+
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Method;
@@ -17,10 +17,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import org.slf4j.LoggerFactory;
+
+import static java.util.Collections.emptyMap;
+import static java.util.stream.Collectors.toMap;
+import static lombok.AccessLevel.PACKAGE;
+import static lombok.AccessLevel.PRIVATE;
 
 public interface OwnershipAnnotationDefinition {
 
@@ -33,23 +34,23 @@ public interface OwnershipAnnotationDefinition {
                                                                        @NonNull final Function<A, ?> ownerGetter,
                                                                        @NonNull final List<MetaDataExtractor<A, ?>> metaDataExtractors) {
         return define(
-            annotationClass,
-            ownerGetter,
-            annotation -> metaDataExtractors.stream()
-                                            .map(extractor -> Pair.of(extractor.getName(), extractor.getMetaDataGetter()
-                                                                                                    .apply(annotation)))
-                                            .filter(pair -> pair.getRight()
-                                                                .isPresent())
-                                            .collect(toMap(
-                                                Pair::getLeft,
-                                                pair -> pair.getRight()
-                                                            .get(),
-                                                (firstData, secondData) -> {
-                                                    throw new IllegalStateException(
-                                                        "given two extractors for the same meta data element"
-                                                    );
-                                                }
-                                            ))
+                annotationClass,
+                ownerGetter,
+                annotation -> metaDataExtractors.stream()
+                        .map(extractor -> Pair.of(extractor.getName(), extractor.getMetaDataGetter()
+                                .apply(annotation)))
+                        .filter(pair -> pair.getRight()
+                                .isPresent())
+                        .collect(toMap(
+                                Pair::getLeft,
+                                pair -> pair.getRight()
+                                        .get(),
+                                (firstData, secondData) -> {
+                                    throw new IllegalStateException(
+                                            "given two extractors for the same meta data element"
+                                    );
+                                }
+                        ))
         );
     }
 
@@ -62,34 +63,34 @@ public interface OwnershipAnnotationDefinition {
                 );
 
         return givenElement -> Optional.ofNullable(givenElement)
-                                       .map(it -> {
-                                           try {
-                                               return Optional.of(annotationClass)
-                                                              .map(it::getAnnotation)
-                                                              .orElseGet(() -> annotationScanner(annotationClass, it)
-                                                              .orElseGet(() -> parentPackageAnnotationScanner.scan(it)
-                                                              .orElse(null)));
-                                           } catch (final Exception exception) {
-                                               LoggerFactory.getLogger(OwnershipAnnotationDefinition.class)
-                                                            .warn(
-                                                                "failed to get annotation {} from {}, class will be ignored",
-                                                                annotationClass.getSimpleName(),
-                                                                it,
-                                                                exception
-                                                            );
-                                               return null;
-                                           }
-                                       })
-                                       .map(annotation -> {
-                                           try {
-                                               return new OwnershipData(
-                                                   String.valueOf(ownerGetter.apply(annotation)),
-                                                   metaDataGetter.apply(annotation)
-                                               );
-                                           } catch (final Exception ownerGetterInvocationException) {
-                                               throw new OwnerFetchingException(ownerGetterInvocationException);
-                                           }
-                                       });
+                .map(it -> {
+                    try {
+                        return Optional.of(annotationClass)
+                                .map(it::getAnnotation)
+                                .orElseGet(() -> annotationScanner(annotationClass, it)
+                                        .orElseGet(() -> parentPackageAnnotationScanner.scan(it)
+                                                .orElse(null)));
+                    } catch (final Exception exception) {
+                        LoggerFactory.getLogger(OwnershipAnnotationDefinition.class)
+                                .warn(
+                                        "failed to get annotation {} from {}, class will be ignored",
+                                        annotationClass.getSimpleName(),
+                                        it,
+                                        exception
+                                );
+                        return null;
+                    }
+                })
+                .map(annotation -> {
+                    try {
+                        return new OwnershipData(
+                                String.valueOf(ownerGetter.apply(annotation)),
+                                metaDataGetter.apply(annotation)
+                        );
+                    } catch (final Exception ownerGetterInvocationException) {
+                        throw new OwnerFetchingException(ownerGetterInvocationException);
+                    }
+                });
     }
 
     //TODO extract to class and make interface
@@ -150,8 +151,8 @@ public interface OwnershipAnnotationDefinition {
      */
     default OwnershipAnnotationDefinition or(final OwnershipAnnotationDefinition another) {
         return givenElement -> Optional.of(this.getOwnershipData(givenElement))
-                                       .filter(Optional::isPresent)
-                                       .orElseGet(() -> another.getOwnershipData(givenElement));
+                .filter(Optional::isPresent)
+                .orElseGet(() -> another.getOwnershipData(givenElement));
     }
 
     default boolean hasOwner(final AnnotatedElement givenElement) {
@@ -166,8 +167,8 @@ public interface OwnershipAnnotationDefinition {
         private final Function<A, Optional<T>> metaDataGetter;
 
         public static <A extends Annotation, T> MetaDataExtractor<A, T> metaDataExtractor(
-            final String key,
-            final Function<A, Optional<T>> metaDataGetter
+                final String key,
+                final Function<A, Optional<T>> metaDataGetter
         ) {
             return new MetaDataExtractor<>(key, metaDataGetter);
         }

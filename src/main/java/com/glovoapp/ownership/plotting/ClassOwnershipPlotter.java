@@ -1,17 +1,18 @@
 package com.glovoapp.ownership.plotting;
 
-import static java.util.stream.Collectors.toSet;
-
 import com.glovoapp.ownership.ClassOwnership;
 import com.glovoapp.ownership.ClassOwnershipExtractor;
 import com.glovoapp.ownership.classpath.ClasspathLoader;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.reflections.Reflections;
+
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.toSet;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -32,14 +33,14 @@ public final class ClassOwnershipPlotter {
      */
     public final void createClasspathDiagram(final String packagePrefix) {
         createDiagram(
-            classpathLoader.loadAllClasses(packagePrefix)
-                           .stream()
-                           .filter(aClass -> Optional.of(aClass)
-                                                     .map(Class::getPackage)
-                                                     .map(Package::getName)
-                                                     .map(packageName -> packageName.startsWith(packagePrefix))
-                                                     .orElse(false))
-                           .collect(toSet())
+                classpathLoader.loadAllClasses(packagePrefix)
+                        .stream()
+                        .filter(aClass -> Optional.of(aClass)
+                                .map(Class::getPackage)
+                                .map(Package::getName)
+                                .map(packageName -> packageName.startsWith(packagePrefix))
+                                .orElse(false))
+                        .collect(toSet())
         );
     }
 
@@ -51,10 +52,10 @@ public final class ClassOwnershipPlotter {
 
     private Set<ClassOwnership> extractAndFilter(final Set<Class<?>> domain) {
         final Set<ClassOwnership> fullDomainOwnership = domain.stream()
-                                                              .map(extractor::getOwnershipOf)
-                                                              .filter(Optional::isPresent)
-                                                              .map(Optional::get)
-                                                              .collect(Collectors.toSet());
+                .map(extractor::getOwnershipOf)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .collect(Collectors.toSet());
 
         return filter.apply(fullDomainOwnership);
     }

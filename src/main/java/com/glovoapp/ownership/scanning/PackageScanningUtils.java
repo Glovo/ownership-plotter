@@ -14,8 +14,7 @@ final class PackageScanningUtils {
 
         if (element instanceof Class) {
             return Optional.of(((Class<?>) element).getPackage().getName());
-        }
-        else if (element instanceof Method) {
+        } else if (element instanceof Method) {
             return Optional.of(((Method) element).getDeclaringClass().getPackage().getName());
         }
 

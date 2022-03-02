@@ -1,7 +1,8 @@
 package com.glovoapp.ownership.shared;
 
-import java.util.function.Supplier;
 import lombok.RequiredArgsConstructor;
+
+import java.util.function.Supplier;
 
 @RequiredArgsConstructor
 public final class LazyReference<T> {

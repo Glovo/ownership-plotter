@@ -1,15 +1,16 @@
 package com.glovoapp.ownership.shared;
 
-import static java.util.Collections.unmodifiableList;
-import static java.util.stream.Collectors.toSet;
-import static lombok.AccessLevel.PRIVATE;
+import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
-import lombok.NoArgsConstructor;
+
+import static java.util.Collections.unmodifiableList;
+import static java.util.stream.Collectors.toSet;
+import static lombok.AccessLevel.PRIVATE;
 
 @NoArgsConstructor(access = PRIVATE)
 public final class Sets {
@@ -19,10 +20,10 @@ public final class Sets {
      */
     public static <T> Set<T> union(final Set<? extends T> first, final Set<? extends T> second) {
         return Stream.concat(
-            first.stream(),
-            second.stream()
-        )
-                     .collect(toSet());
+                        first.stream(),
+                        second.stream()
+                )
+                .collect(toSet());
     }
 
     /**
@@ -41,7 +42,7 @@ public final class Sets {
         int index = 0;
         for (final T object : set) {
             result.get(index++ % numberOfPartitions)
-                  .add(object);
+                    .add(object);
         }
 
         return unmodifiableList(result);
