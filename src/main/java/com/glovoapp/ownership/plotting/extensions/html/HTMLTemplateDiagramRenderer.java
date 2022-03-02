@@ -62,7 +62,7 @@ public final class HTMLTemplateDiagramRenderer implements DiagramRenderer<UUIDId
 
     @Override
     @SneakyThrows
-    public final InputStream renderDiagram(final Diagram<UUIDIdentifier, ClassRelationship> diagram) {
+    public InputStream renderDiagram(final Diagram<UUIDIdentifier, ClassRelationship> diagram) {
         final Document htmlDiagram = htmlTemplate.clone();
 
         final Element rawDiagramDataElement = Optional

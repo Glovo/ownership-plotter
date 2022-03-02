@@ -46,7 +46,7 @@ public final class FeaturesDiagramDataFactory implements OwnershipDiagramFactory
     }
 
     @Override
-    public final <Id extends Identifier<Id>> Diagram<Id, ClassRelationship> createOwnershipDiagram(
+    public <Id extends Identifier<Id>> Diagram<Id, ClassRelationship> createOwnershipDiagram(
             final Set<ClassOwnership> domainOwnership,
             final IdentifierGenerator<Id> idGenerator
     ) {
@@ -80,49 +80,66 @@ public final class FeaturesDiagramDataFactory implements OwnershipDiagramFactory
                         ))
                         .entrySet()
                         .stream()
-                        .map(ownerToFeaturesToClassNamesToMethodNames ->
-                                new SimpleComponent<>(
-                                        idGenerator.generate(),
-                                        ownerToFeaturesToClassNamesToMethodNames.getKey(),
-                                        ownerToFeaturesToClassNamesToMethodNames.getValue()
-                                                .entrySet()
-                                                .stream()
-                                                .map(featureToClassNameToMethodNames ->
-                                                        new SimpleComponent<>(
-                                                                idGenerator.generate(),
-                                                                featureToClassNameToMethodNames.getKey(),
-                                                                featureToClassNameToMethodNames.getValue()
-                                                                        .entrySet()
-                                                                        .stream()
-                                                                        .map(
-                                                                                theClass ->
-                                                                                        new SimpleComponent<>(
-                                                                                                idGenerator.generate(),
-                                                                                                theClass.getKey()
-                                                                                                        .getSimpleName(),
-                                                                                                theClass.getValue()
-                                                                                                        .values()
-                                                                                                        .stream()
-                                                                                                        .flatMap(
-                                                                                                                Collection::stream)
-                                                                                                        .flatMap(
-                                                                                                                Collection::stream)
-                                                                                                        .map(
-                                                                                                                methodName -> new SimpleComponent<>(
-                                                                                                                        idGenerator.generate(),
-                                                                                                                        methodName,
-                                                                                                                        emptySet()
-                                                                                                                ))
-                                                                                                        .collect(
-                                                                                                                toSet())
-                                                                                        )
-                                                                        )
-                                                                        .collect(
-                                                                                toSet())
-                                                        )
-                                                )
-                                                .collect(toSet())
-                                )
+                        .map(ownerToFeaturesToClassNamesToMethodNames -> {
+                                    final Id ownerIdentifier = idGenerator.generate(null, ownerToFeaturesToClassNamesToMethodNames.getKey());
+                                    return new SimpleComponent<>(
+                                            ownerIdentifier,
+                                            ownerToFeaturesToClassNamesToMethodNames.getKey(),
+                                            ownerToFeaturesToClassNamesToMethodNames.getValue()
+                                                    .entrySet()
+                                                    .stream()
+                                                    .map(featureToClassNameToMethodNames -> {
+                                                                final Id featureIdentifier = idGenerator.generate(
+                                                                        ownerIdentifier,
+                                                                        featureToClassNameToMethodNames.getKey()
+                                                                );
+                                                                return new SimpleComponent<>(
+                                                                        featureIdentifier,
+                                                                        featureToClassNameToMethodNames.getKey(),
+                                                                        featureToClassNameToMethodNames.getValue()
+                                                                                .entrySet()
+                                                                                .stream()
+                                                                                .map(theClass -> {
+                                                                                            final Id classIdentifier = idGenerator.generate(
+                                                                                                    featureIdentifier,
+                                                                                                    theClass.getKey()
+                                                                                                            .getSimpleName()
+                                                                                            );
+                                                                                            return new SimpleComponent<>(
+                                                                                                    classIdentifier,
+                                                                                                    theClass.getKey()
+                                                                                                            .getSimpleName(),
+                                                                                                    theClass.getValue()
+                                                                                                            .values()
+                                                                                                            .stream()
+                                                                                                            .flatMap(
+                                                                                                                    Collection::stream
+                                                                                                            )
+                                                                                                            .flatMap(
+                                                                                                                    Collection::stream
+                                                                                                            )
+                                                                                                            .map(methodName ->
+                                                                                                                    new SimpleComponent<>(
+                                                                                                                            idGenerator.generate(
+                                                                                                                                    classIdentifier,
+                                                                                                                                    methodName
+                                                                                                                            ),
+                                                                                                                            methodName,
+                                                                                                                            emptySet()
+                                                                                                                    ))
+                                                                                                            .collect(
+                                                                                                                    toSet())
+                                                                                            );
+                                                                                        }
+                                                                                )
+                                                                                .collect(
+                                                                                        toSet())
+                                                                );
+                                                            }
+                                                    )
+                                                    .collect(toSet())
+                                    );
+                                }
                         )
                         .collect(toSet()),
                 emptySet()

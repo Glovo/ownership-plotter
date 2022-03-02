@@ -143,7 +143,7 @@ public final class RelationshipsDiagramDataFactory implements OwnershipDiagramFa
                 .distinct()
                 .map(ownerName ->
                         new SimpleComponent<>(
-                                idGenerator.generate(),
+                                idGenerator.generate(null, ownerName),
                                 ownerName,
                                 ownershipsToClassComponents.entrySet()
                                         .stream()
@@ -176,7 +176,11 @@ public final class RelationshipsDiagramDataFactory implements OwnershipDiagramFa
                         toMap(
                                 identity(),
                                 classOwnership -> new SimpleComponent<>(
-                                        idGenerator.generate(),
+                                        idGenerator.generate(
+                                                idGenerator.generate(null, classOwnership.getClassOwner()),
+                                                classOwnership.getTheClass()
+                                                        .getSimpleName()
+                                        ),
                                         classOwnership.getTheClass()
                                                 .getSimpleName(),
                                         emptySet()
