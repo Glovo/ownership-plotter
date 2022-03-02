@@ -4,27 +4,40 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <script src="https://cdn.anychart.com/releases/v8/js/anychart-core.min.js"></script>
     <script src="https://cdn.anychart.com/releases/v8/js/anychart-treemap.min.js"></script>
-    <meta name="rawDiagramData" content="" />
+    <meta name="rawDiagramData" />
   </head>
   <body>
     <div id="viewport">
       <div id="navigation">
-        <div id="navigationTopButton">
-          <span id="navigationTopLabel" class="navigstion-link">⛳️ Top</span>
-        </div>
-        <div id="navigationTeamButton">
-          <span>👥 Team :</span>
-          <span id="navigationTeamLabel" class="navigstion-link">--</span>
-        </div>
-        <div id="navigationDomainButton">
-          <span>🌎 Domain :</span>
-          <span id="navigationDomainLabel" clasS="navigstion-link">--</span>
-        </div>
-        <div id="navigationClassButton">
-          <span>📦 Class :</span>
-          <span id="navigationClassLabel" class="navigstion-link">--</span>
-        </div>
+        <span id="searchContainer">
+          <input id="searchInput" autocomplete="off" placeholder="Search..." />
+          <div id="searchSpinner" hidden></div>
+          <div id="searchResultsContainer" hidden></div>
+          <div id="searchResultsOverlay" hidden></div>
+        </span>
+        <span>
+          <div id="navigationTopButton" class="nav-button">
+            <span id="navigationTopLabel" class="navigstion-link">⛳️ Top</span>
+          </div>
+          <div id="navigationTeamButton" class="nav-button">
+            <span>👥 Team :</span>
+            <span id="navigationTeamLabel" class="navigstion-link">--</span>
+          </div>
+          <div id="navigationDomainButton" class="nav-button">
+            <span>🌎 Domain :</span>
+            <span id="navigationDomainLabel" clasS="navigstion-link">--</span>
+          </div>
+          <div id="navigationClassButton" class="nav-button">
+            <span>📦 Class :</span>
+            <span id="navigationClassLabel" class="navigstion-link">--</span>
+          </div>
+        </span>
+        <span id="title">
+          <div>Ownership plotter</div>
+          <div id="creationTime"></div>
+        </span>
       </div>
+
       <div id="chart">
         <!-- graph will be rendered here-->
       </div>
@@ -37,7 +50,9 @@
      *
      **************************************************************************/
     let chart
+
     let currentLocation = []
+
     const DOMRef = {
       rawDiagramData : document.querySelector(`meta[name="rawDiagramData"]`),
       navigationTopLabel : document.getElementById('navigationTopLabel'),
@@ -48,7 +63,13 @@
       navigationTeamButton: document.getElementById('navigationTeamButton'),
       navigationDomainButton: document.getElementById('navigationDomainButton'),
       navigationClassButton: document.getElementById('navigationClassButton'),
+      searchInput: document.getElementById('searchInput'),
+      searchResultsContainer: document.getElementById('searchResultsContainer'),
+      searchResultsOverlay: document.getElementById('searchResultsOverlay'),
+      searchSpinner: document.getElementById('searchSpinner'),
+      creationTime: document.getElementById('creationTime'),
     }
+
     const ChartLevel = {
       TOP : 0,
       TEAM : 1,
@@ -61,6 +82,18 @@
      *  HELPER METHODS
      *
      **************************************************************************/
+
+     /**
+      * Create a debouncer
+      */
+    function debounce(func, wait) {
+      let timeout
+      return function(...args) {
+        const context = this
+        clearTimeout(timeout)
+        timeout = setTimeout(() => func.apply(context, args), wait)
+      }
+    }
 
     /**
      * Method used in dev environment, to fetch data form json file
@@ -75,7 +108,7 @@
      * Extracts raw chart data from the DOMRef.rawDiagramData element,
      * parses it and returns it
      */
-    const getChartData = () => {
+    function getChartDataFromHeader(){
       if (DOMRef.rawDiagramData === null) throw new Error('Could not find element containing Chart raw data')
       const stringifiedData = DOMRef.rawDiagramData.content
       const data = JSON.parse(stringifiedData)
@@ -87,12 +120,15 @@
      * data structure ready to be consumed by anyChart
      */
     function mapData(original, acc, level=0) {
+      const name =  original.name || 'UNKNOWN'
       const mapped = {
-        name: original.name,
+        name: name,
+        id: original.id,
         children: [],
         value: 1, // anyChart will calculate it automatically
         level: level // maps to ChartLevel values
       }
+      if(name === 'UNKNOWN' ) mapped.fill ="#e64b4b"
       acc.push(mapped)
       for (const child of original.nestedComponents) {
         const mappedChildren = mapData(
@@ -131,9 +167,24 @@
      */
     function setCurrentLocation(){
       currentLocation = chart.getDrilldownPath()
-      DOMRef.navigationTeamLabel.innerHTML = currentLocation[1]?.get('name') || '--'
-      DOMRef.navigationDomainLabel.innerHTML = currentLocation[2]?.get('name') || '--'
-      DOMRef.navigationClassLabel.innerHTML = currentLocation[3]?.get('name') || '--'
+      const teamName = currentLocation[1]?.get('name')
+      const domainName = currentLocation[2]?.get('name')
+      const className = currentLocation[3]?.get('name')
+
+      const locationId= currentLocation[currentLocation.length-1]?.get('id')
+      window.location.hash = locationId || 'top'
+
+      DOMRef.navigationTeamLabel.innerHTML = teamName || '--'
+      DOMRef.navigationDomainLabel.innerHTML = domainName || '--'
+      DOMRef.navigationClassLabel.innerHTML = className || '--'
+
+      DOMRef.navigationTeamButton.setAttribute('disabled', 'true')
+      DOMRef.navigationDomainButton.setAttribute('disabled', 'true')
+      DOMRef.navigationClassButton.setAttribute('disabled', 'true')
+
+      if(teamName) DOMRef.navigationTeamButton.removeAttribute('disabled')
+      if(domainName) DOMRef.navigationDomainButton.removeAttribute('disabled')
+      if(className) DOMRef.navigationClassButton.removeAttribute('disabled')
     }
 
     /**
@@ -164,18 +215,147 @@
       chart.selected().stroke('white', 1)
       chart.tooltip().format('')
       chart.labels().useHtml(true)
+      chart.tooltip().useHtml(true)
       chart.labels().format( function () {
         const nodeLevel = this.getData('level')
         return nodeLevel < 3
          ? `<span style='font-weight:bold'>${this.name}</span><br/><span>${this.value} methods</span>`
          : `<span style='font-weight:bold'>${this.name}</span><br/><span>⨍</span>`
+      })
+      chart.tooltip().format(function() {
+        const levelTags = ['[Team]', '[Domain]', ['Class'],  ['Method']]
+        const level = this.getData('level')
+        let text = levelTags[level]
+        if(this.name==='UNKNOWN')  text+= '<br><br>This element\'s name is missing!'
+        return text
+
       });
       chart.listen('chartDraw', setCurrentLocation )
       chart.listen('pointClick', (e) => false )
       chart.container('chart')
       chart.draw()
+      chart.listen("drillchange", function(e){
+        // When a method is displayed (due to a search result click), the whole
+        // chart renders only that method, and when clicked,  navigates back to the parent
+        // class, which is a counter intuitive action, as the "click" event always
+        // navigates to a children, never to a parent. Prevent that behavior whit
+        // this listener.
+        currentLocation = chart.getDrilldownPath()
+        if(currentLocation.length > 3)  return false
+      });
+
     }
 
+    /**
+     * Deep searches for all occurrences in the data tree that match
+     * the provided query, and returns an array containing the whole
+     * object path to each one of the results
+     */
+    function deepSearch(data, query, path= 'top') {
+      query= query.toLowerCase()
+      if(!query.length) return []
+      const result = []
+      for(entry of data){
+        const name = entry.name
+        if(name.toLowerCase().includes(query)){
+          result.push({
+            id: entry.id,
+            path:`${path}.${name}`,
+            name : entry.name
+          })
+        }
+        if(entry.children && entry.children.length) {
+          const childResults = deepSearch(entry.children, query, `${path}.${name}`)
+          result.push(...childResults)
+        }
+      }
+      return result
+    }
+
+    /**
+     * Iterates the array of results and generates and injects an entry
+     * in the search input dropdown, with some basic formatting for
+     * better visualization
+     */
+    function populateSearchResults(results, query){
+      if(results.length) showSearchResults()
+      else hideSearchResults()
+      let regExp = new RegExp(query, 'gmi')
+      DOMRef.searchResultsContainer.innerHTML= ''
+      for(resultsItem of results){
+        const parts = resultsItem.path.split('.')
+        parts.shift()
+        parts[parts.length-1] =  parts[parts.length-1] .replace(regExp, (i)=>`<span class="highlight">${i}</span>`)
+        const entry = document.createElement('div')
+        entry.className ='search-results__entry'
+        if(parts[0]) entry.innerHTML += `<span>👥 ${parts[0]}</span>`
+        if(parts[1]) entry.innerHTML += `<span>🌎 ${parts[1]}</span>`
+        if(parts[2]) entry.innerHTML += `<span>📦 ${parts[2]}</span>`
+        if(parts[3]) entry.innerHTML += `<span>⨍ ${parts[3]}</span>`
+        createSearchResultElementClickListener(entry, resultsItem)
+        DOMRef.searchResultsContainer.appendChild(entry)
+
+      }
+    }
+
+    /**
+     * Creates the click event listener for a search result item where
+     * item is displayed on chart, and search results container is hidden
+     */
+    function createSearchResultElementClickListener(element, resultsItem){
+      element.addEventListener('click', ()=>{
+        var chartItem = chart.data().search("id", resultsItem.id)
+        chart.drillTo(chartItem)
+        hideSearchResults()
+      })
+    }
+
+    /**
+     * Hides the Search dropdown containing the results
+     */
+    function hideSearchResults(){
+      DOMRef.searchResultsContainer.setAttribute('hidden',true)
+      DOMRef.searchResultsOverlay.setAttribute('hidden',true)
+    }
+
+    /**
+     * Shows the Search dropdown containing the results
+     */
+    function showSearchResults(){
+      DOMRef.searchResultsContainer.removeAttribute('hidden')
+      DOMRef.searchResultsOverlay.removeAttribute('hidden')
+    }
+
+    /**
+     * Starts the search of a given string in the graph data object
+     */
+    const debouncedSearch = debounce( data =>{
+      DOMRef.searchSpinner.removeAttribute('hidden')
+      // in order to allow the browser display the loading spinner
+      // we need to give him a bit of time to update the ROM, before
+      // the search starts, using a timeout , as the search blocks the tab
+      // (a more appropriate solution is to move the search to a web worker)
+      setTimeout(()=>{
+        const query = DOMRef.searchInput.value.trim()
+        const matches = deepSearch(data[0].children, query)
+        populateSearchResults(matches, query)
+        DOMRef.searchSpinner.setAttribute('hidden', true)
+      }, 100)
+    }, 100)
+
+    /**
+     *
+     */
+    function formatDate(timestamp){
+      const date = new Date(timestamp)
+      return  "" +
+        ("00" + (date.getMonth() + 1)).slice(-2) + "/" +
+        ("00" + date.getDate()).slice(-2) + "/" +
+        date.getFullYear() + " " +
+        ("00" + date.getHours()).slice(-2) + ":" +
+        ("00" + date.getMinutes()).slice(-2) + ":" +
+        ("00" + date.getSeconds()).slice(-2);
+    }
     /***************************************************************************
      *
      *  INITIALIZATION
@@ -183,13 +363,28 @@
      **************************************************************************/
     anychart.onDocumentReady(async ()=> {
       initializeNavigationBar()
-      const isDevMode = location.hostname === '127.0.0.1'
+      const urlParams = new URLSearchParams(window.location.search)
+      const isDevMode = Boolean(urlParams.get('dev'))
       const rawData = isDevMode
        ? await fetchChartData() // fetch from local /data.json file on dev env
-       : await getChartData() // recover data from injected element on production
+       : await getChartDataFromHeader() // recover data from injected element on production
       const normalizedChartData = normalizeChartData(rawData)
       initializeChart(normalizedChartData)
-    } )
+
+      // if url contains a location hash with an id, try to load the provided
+      // chart node. If not found, load top level
+      const locationHash = window.location.hash.slice(1)
+      if(locationHash && locationHash !== 'top' ){
+        var chartItem = chart.data().search("id", locationHash)
+        if(chartItem) chart.drillTo(chartItem)
+        else window.location.hash = 'top'
+      }
+
+      DOMRef.creationTime.innerText = `Build: ${formatDate(rawData.createdAt)}`
+      DOMRef.searchInput.addEventListener('click', ()=> debouncedSearch(normalizedChartData) )
+      DOMRef.searchInput.addEventListener('input', ()=> debouncedSearch(normalizedChartData) )
+      DOMRef.searchResultsOverlay.addEventListener('click', hideSearchResults)
+    })
   </script>
 
   <style>
@@ -203,9 +398,41 @@
       background-color: #88beea;
     }
 
-    .anychart-credits {
-      display: none;
+    [hidden] {
+      display: none !important;
     }
+
+    [disabled] {
+      opacity: 0.5;
+      pointer-events: none;
+    }
+
+    textarea:focus,
+    input:focus {
+      outline: none;
+    }
+
+    #title {
+      margin-top: -4px;
+      float: right;
+      margin-right: 40px;
+      color: white;
+      font-size: 20px;
+      color: #88beea;
+    }
+
+    #creationTime {
+      font-size: 10px;
+      text-align: right;
+      color: #efd725;
+      padding-top: 4px;
+    }
+
+    /***************************************************************************
+     *
+     * CHART
+     *
+     **************************************************************************/
 
     #viewport {
       width: 100%;
@@ -222,24 +449,142 @@
       padding: 0px;
     }
 
+    .anychart-credits {
+      display: none;
+    }
+
+    /***************************************************************************
+     *
+     * SEARCH
+     *
+     **************************************************************************/
+
+    #searchSpinner {
+      border: 3px dotted rgb(143 201 249);
+      border-left-color: transparent;
+      width: 10px;
+      height: 10px;
+      animation: spin 1s linear infinite;
+      position: absolute;
+      top: 9px;
+      display: block;
+      right: 28px;
+      border-radius: 100%;
+    }
+
+    @keyframes spin {
+      0% {
+        transform: rotate(0deg);
+      }
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+
+    #searchContainer {
+      position: relative;
+      float: left;
+      border: 0px;
+      border: 0px !important;
+      background: none !important;
+      cursor: initial !important;
+    }
+
+    #searchInput {
+      position: relative;
+      z-index: 1000;
+      height: 34px;
+      background: none;
+      border: 1px solid #61a1d7;
+      margin-right: 20px;
+      background: #ffffff47;
+      padding: 10px;
+      color: white;
+    }
+
+    #searchInput::placeholder {
+      color: #ffffff77;
+    }
+
+    #searchResultsContainer {
+      white-space: nowrap;
+      position: absolute;
+      z-index: 1000;
+      text-align: left;
+      padding: 10px;
+      background: #27465f;
+      color: white;
+      box-shadow: 0px 2px 4px 0 rgba(0, 0, 0, 0.363);
+      display: grid;
+      border-radius: 5px;
+      max-height: 350px;
+      overflow-y: auto;
+      margin-top: 3px;
+      margin-left: 0px;
+    }
+
+    #searchResultsOverlay {
+      z-index: 999;
+      position: fixed;
+      background: transparent;
+      top: 0px;
+      left: 0px;
+      bottom: 0px;
+      right: 0px;
+    }
+
+    .search-results__entry {
+      padding: 10px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+
+    .search-results__entry:hover {
+      background: #31516b;
+    }
+
+    .search-results__entry > span {
+      margin-right: 15px;
+    }
+
+    .highlight {
+      color: #efd725;
+    }
+
+    /***************************************************************************
+     *
+     * NAVIGATION
+     *
+     **************************************************************************/
+
     #navigation {
-      gap: 0px;
-      margin-left: 12px;
-      margin-top: 20px;
-      text-align: center;
+      padding-left: 20px;
+      padding-top: 20px;
+      text-align: left;
+      border-bottom: 1px solid black;
+      padding-bottom: 20px;
+      background: #236190;
+      box-shadow: inset 0px -2px 3px #203b50;
     }
 
     .navigstion-link {
       font-weight: 800;
     }
 
-    #navigation > div {
+    #navigation .nav-button {
       border: 1px solid #61a2d8;
       padding: 6px;
-      padding-right: 20px;
+      padding-right: 8px;
       cursor: pointer;
       display: inline-block;
       font-size: 12px;
+      color: white;
+      border-radius: 5px;
+    }
+
+    #navigation .nav-button:hover {
+      background: rgba(255, 255, 255, 0.815);
+      color: #4389c2;
     }
 
     #navigation > div:hover {
