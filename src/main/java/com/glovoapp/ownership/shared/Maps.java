@@ -18,21 +18,21 @@ public final class Maps {
                                                      final Map<Key, Value> second,
                                                      final BinaryOperator<Value> mergeFunction) {
         return Stream.concat(
-            first.entrySet()
-                 .stream(),
-            second.entrySet()
-                  .stream()
-        )
-                     .collect(toMap(Entry::getKey, Entry::getValue, mergeFunction));
+                        first.entrySet()
+                                .stream(),
+                        second.entrySet()
+                                .stream()
+                )
+                .collect(toMap(Entry::getKey, Entry::getValue, mergeFunction));
     }
 
     public static <Key, OldValue, NewValue> Map<Key, NewValue> transformValues(
-        final Map<Key, OldValue> oldMap,
-        final Function<OldValue, NewValue> transformer
+            final Map<Key, OldValue> oldMap,
+            final Function<OldValue, NewValue> transformer
     ) {
         return oldMap.entrySet()
-                     .stream()
-                     .collect(toMap(Entry::getKey, entry -> transformer.apply(entry.getValue())));
+                .stream()
+                .collect(toMap(Entry::getKey, entry -> transformer.apply(entry.getValue())));
     }
 
 }

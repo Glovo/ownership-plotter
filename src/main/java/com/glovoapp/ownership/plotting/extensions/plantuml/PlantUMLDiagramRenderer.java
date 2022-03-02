@@ -38,49 +38,49 @@ public final class PlantUMLDiagramRenderer implements DiagramRenderer<PlantUMLId
     @SneakyThrows
     public final InputStream renderDiagram(final Diagram<PlantUMLIdentifier, ClassRelationship> diagram) {
         final String diagramAsString = "@startuml\n"
-            + "hide stereotype\n"
-            + "skinparam package {\n"
-            + IntStream.rangeClosed(0, MAXIMUM_SUPPORTED_NESTING)
-                       .mapToObj(nesting -> {
-                           final ComponentColors componentColors = getComponentColors(nesting);
-                           return "FontColor<<n" + nesting + ">> " + componentColors.getFontColor()
-                                                                                    .toHexString() + '\n'
-                               + "BackgroundColor<<n" + nesting + ">> " + componentColors.getBackgroundColor()
-                                                                                         .toHexString() + '\n'
-                               + "BorderColor<<n" + nesting + ">> " + componentColors.getBorderColor()
-                                                                                     .toHexString() + '\n';
-                       })
-                       .collect(joining("\n"))
-            + "\n}\n"
-            + "skinparam folder {\n"
-            + "shadowing false\n"
-            + IntStream.rangeClosed(0, MAXIMUM_SUPPORTED_NESTING)
-                       .mapToObj(nesting -> {
-                           final ComponentColors componentColors = getComponentColors(nesting);
-                           return "FontColor<<n" + nesting + ">> " + componentColors.getBackgroundColor()
-                                                                                    .toHexString() + '\n'
-                               + "BackgroundColor<<n" + nesting + ">> " + componentColors.getBackgroundColor()
-                                                                                         .toHexString() + '\n'
-                               + "BorderColor<<n" + nesting + ">> " + componentColors.getBackgroundColor()
-                                                                                     .toHexString() + '\n';
-                       })
-                       .collect(joining("\n"))
-            + "\n}\n"
-            + Stream.concat(
-            diagram.getTopLevelComponents()
-                   .stream()
-                   .map(this::renderComponent),
-            diagram.getRelationships()
-                   .stream()
-                   .map(this::renderRelationship)
-        )
-                    .collect(joining("\n"))
-            + "\n@enduml";
+                + "hide stereotype\n"
+                + "skinparam package {\n"
+                + IntStream.rangeClosed(0, MAXIMUM_SUPPORTED_NESTING)
+                .mapToObj(nesting -> {
+                    final ComponentColors componentColors = getComponentColors(nesting);
+                    return "FontColor<<n" + nesting + ">> " + componentColors.getFontColor()
+                            .toHexString() + '\n'
+                            + "BackgroundColor<<n" + nesting + ">> " + componentColors.getBackgroundColor()
+                            .toHexString() + '\n'
+                            + "BorderColor<<n" + nesting + ">> " + componentColors.getBorderColor()
+                            .toHexString() + '\n';
+                })
+                .collect(joining("\n"))
+                + "\n}\n"
+                + "skinparam folder {\n"
+                + "shadowing false\n"
+                + IntStream.rangeClosed(0, MAXIMUM_SUPPORTED_NESTING)
+                .mapToObj(nesting -> {
+                    final ComponentColors componentColors = getComponentColors(nesting);
+                    return "FontColor<<n" + nesting + ">> " + componentColors.getBackgroundColor()
+                            .toHexString() + '\n'
+                            + "BackgroundColor<<n" + nesting + ">> " + componentColors.getBackgroundColor()
+                            .toHexString() + '\n'
+                            + "BorderColor<<n" + nesting + ">> " + componentColors.getBackgroundColor()
+                            .toHexString() + '\n';
+                })
+                .collect(joining("\n"))
+                + "\n}\n"
+                + Stream.concat(
+                        diagram.getTopLevelComponents()
+                                .stream()
+                                .map(this::renderComponent),
+                        diagram.getRelationships()
+                                .stream()
+                                .map(this::renderRelationship)
+                )
+                .collect(joining("\n"))
+                + "\n@enduml";
 
         final SourceStringReader reader = new SourceStringReader(diagramAsString);
         final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         final String generationDescription = reader.outputImage(outputStream, new FileFormatOption(fileFormat))
-                                                   .getDescription();
+                .getDescription();
         log.info("diagram generated; PlantUML output: {}", generationDescription);
         return new ByteArrayInputStream(outputStream.toByteArray());
     }
@@ -92,37 +92,37 @@ public final class PlantUMLDiagramRenderer implements DiagramRenderer<PlantUMLId
     private String renderComponent(final Component<PlantUMLIdentifier> component, final int nesting) {
         if (nesting > MAXIMUM_SUPPORTED_NESTING) {
             throw new IllegalArgumentException(
-                "only " + MAXIMUM_SUPPORTED_NESTING + " levels of nested components are supported"
+                    "only " + MAXIMUM_SUPPORTED_NESTING + " levels of nested components are supported"
             );
         }
         if (component.getName()
-                     .isEmpty()) {
+                .isEmpty()) {
             log.warn("found empty component with ID {}, ignoring", component.getId());
             return "";
         }
         final String indent = repeat(nesting * 4, ' ');
         final String folderIndent = repeat((nesting + 1) * 4, ' ');
         return indent + "package \"" + component.getName() + "\" <<n" + nesting + ">> as " + component.getId() + " {\n"
-            + (
-            component.getNestedComponents()
-                     .isEmpty()
-                ? folderIndent + "folder " + component.getId() + "_empty <<n" + nesting + ">> {\n" + folderIndent
-                + "}\n"
-                : component.getNestedComponents()
-                           .stream()
-                           .map(nestedComponent -> renderComponent(nestedComponent, nesting + 1))
-                           .collect(joining("\n"))
+                + (
+                component.getNestedComponents()
+                        .isEmpty()
+                        ? folderIndent + "folder " + component.getId() + "_empty <<n" + nesting + ">> {\n" + folderIndent
+                        + "}\n"
+                        : component.getNestedComponents()
+                        .stream()
+                        .map(nestedComponent -> renderComponent(nestedComponent, nesting + 1))
+                        .collect(joining("\n"))
         )
-            + indent + "}\n";
+                + indent + "}\n";
     }
 
     private static ComponentColors getComponentColors(final int nesting) {
         final int backgroundBlack = 100 - ((nesting + 2) * 10);
         final int fontBlack = backgroundBlack - 50 < 0 ? (backgroundBlack + 50) : backgroundBlack - 50;
         return new ComponentColors(
-            new Color(0, 0, 0, backgroundBlack),
-            new Color(0, 0, 0, fontBlack),
-            new Color(0, 0, 0, fontBlack)
+                new Color(0, 0, 0, backgroundBlack),
+                new Color(0, 0, 0, fontBlack),
+                new Color(0, 0, 0, fontBlack)
         );
     }
 
@@ -142,12 +142,12 @@ public final class PlantUMLDiagramRenderer implements DiagramRenderer<PlantUMLId
         }
 
         return relationship.getSource()
-                           .getId()
-                           .toString()
-            + ' ' + arrow + ' '
-            + relationship.getDestination()
-                          .getId()
-                          .toString();
+                .getId()
+                .toString()
+                + ' ' + arrow + ' '
+                + relationship.getDestination()
+                .getId()
+                .toString();
     }
 
     @Getter(PRIVATE)

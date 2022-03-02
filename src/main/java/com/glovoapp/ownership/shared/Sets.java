@@ -20,10 +20,10 @@ public final class Sets {
      */
     public static <T> Set<T> union(final Set<? extends T> first, final Set<? extends T> second) {
         return Stream.concat(
-            first.stream(),
-            second.stream()
-        )
-                     .collect(toSet());
+                        first.stream(),
+                        second.stream()
+                )
+                .collect(toSet());
     }
 
     /**
@@ -42,7 +42,7 @@ public final class Sets {
         int index = 0;
         for (final T object : set) {
             result.get(index++ % numberOfPartitions)
-                  .add(object);
+                    .add(object);
         }
 
         return unmodifiableList(result);

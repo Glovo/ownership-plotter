@@ -16,7 +16,7 @@ import static java.util.stream.Stream.concat;
 
 @RequiredArgsConstructor
 public final class NeighborRandomizerDiagramRendererWrapper<Id extends Identifier<Id>, RelationshipType>
-    implements DiagramRenderer<Id, RelationshipType> {
+        implements DiagramRenderer<Id, RelationshipType> {
 
     private final static Random RANDOM = new Random();
 
@@ -25,55 +25,55 @@ public final class NeighborRandomizerDiagramRendererWrapper<Id extends Identifie
     private final Supplier<RelationshipType> neighborRelationshipSupplier;
 
     public static <Id extends Identifier<Id>> NeighborRandomizerDiagramRendererWrapper<Id, ClassRelationship> wrapClassDiagram(
-        final DiagramRenderer<Id, ClassRelationship> delegate
+            final DiagramRenderer<Id, ClassRelationship> delegate
     ) {
         return wrapClassDiagram(25, delegate);
     }
 
     public static <Id extends Identifier<Id>> NeighborRandomizerDiagramRendererWrapper<Id, ClassRelationship> wrapClassDiagram(
-        final int randomNeighborGenerationPercentage,
-        final DiagramRenderer<Id, ClassRelationship> delegate
+            final int randomNeighborGenerationPercentage,
+            final DiagramRenderer<Id, ClassRelationship> delegate
     ) {
         return new NeighborRandomizerDiagramRendererWrapper<>(
-            randomNeighborGenerationPercentage,
-            delegate,
-            () -> ClassRelationship.VISUAL
+                randomNeighborGenerationPercentage,
+                delegate,
+                () -> ClassRelationship.VISUAL
         );
     }
 
     @Override
     public final InputStream renderDiagram(final Diagram<Id, RelationshipType> diagram) {
         return delegate.renderDiagram(
-            new Diagram.SimpleDiagram<>(
-                diagram.getTopLevelComponents(),
-                union(
-                    diagram.getRelationships(),
-                    createRandomNeighborRelationships(diagram.getTopLevelComponents())
+                new Diagram.SimpleDiagram<>(
+                        diagram.getTopLevelComponents(),
+                        union(
+                                diagram.getRelationships(),
+                                createRandomNeighborRelationships(diagram.getTopLevelComponents())
+                        )
                 )
-            )
         );
     }
 
     private Set<Relationship<Id, RelationshipType>> createRandomNeighborRelationships(
-        final Set<Component<Id>> components
+            final Set<Component<Id>> components
     ) {
         return components.stream()
-                         .flatMap(component ->
-                             concat(
-                                 components.stream()
-                                           .filter(otherComponent -> component != otherComponent)
-                                           .filter(otherComponent -> shouldGenerateRelationship())
-                                           .map(otherComponent ->
-                                               new SimpleRelationship<>(
-                                                   neighborRelationshipSupplier.get(),
-                                                   component,
-                                                   otherComponent
-                                               )
-                                           ),
-                                 createRandomNeighborRelationships(component.getNestedComponents()).stream()
-                             )
-                         )
-                         .collect(toSet());
+                .flatMap(component ->
+                        concat(
+                                components.stream()
+                                        .filter(otherComponent -> component != otherComponent)
+                                        .filter(otherComponent -> shouldGenerateRelationship())
+                                        .map(otherComponent ->
+                                                new SimpleRelationship<>(
+                                                        neighborRelationshipSupplier.get(),
+                                                        component,
+                                                        otherComponent
+                                                )
+                                        ),
+                                createRandomNeighborRelationships(component.getNestedComponents()).stream()
+                        )
+                )
+                .collect(toSet());
     }
 
     private boolean shouldGenerateRelationship() {

@@ -43,9 +43,9 @@ public final class HTMLTemplateDiagramRenderer implements DiagramRenderer<UUIDId
     public HTMLTemplateDiagramRenderer(final Template template,
                                        final SerializingDiagramRenderer<UUIDIdentifier, ClassRelationship> delegate) {
         this(
-            HTMLTemplateDiagramRenderer.class.getClassLoader()
-                                             .getResourceAsStream(template.getTemplateResourceName()),
-            delegate
+                HTMLTemplateDiagramRenderer.class.getClassLoader()
+                        .getResourceAsStream(template.getTemplateResourceName()),
+                delegate
         );
     }
 
@@ -66,18 +66,18 @@ public final class HTMLTemplateDiagramRenderer implements DiagramRenderer<UUIDId
         final Document htmlDiagram = htmlTemplate.clone();
 
         final Element rawDiagramDataElement = Optional
-            .ofNullable(
-                htmlDiagram.getElementsByAttributeValue("name", RAW_DIAGRAM_DATA_META_ELEMENT_ID)
-                           .addClass("meta")
-                           .first()
-            )
-            .orElseGet(() -> {
-                final Element newElement = htmlDiagram.createElement("meta");
-                newElement.attr("name", RAW_DIAGRAM_DATA_META_ELEMENT_ID);
-                htmlDiagram.head()
-                           .appendChild(newElement);
-                return newElement;
-            });
+                .ofNullable(
+                        htmlDiagram.getElementsByAttributeValue("name", RAW_DIAGRAM_DATA_META_ELEMENT_ID)
+                                .addClass("meta")
+                                .first()
+                )
+                .orElseGet(() -> {
+                    final Element newElement = htmlDiagram.createElement("meta");
+                    newElement.attr("name", RAW_DIAGRAM_DATA_META_ELEMENT_ID);
+                    htmlDiagram.head()
+                            .appendChild(newElement);
+                    return newElement;
+                });
 
         final InputStream serializedDiagram = delegate.renderDiagram(diagram);
         final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
@@ -86,7 +86,7 @@ public final class HTMLTemplateDiagramRenderer implements DiagramRenderer<UUIDId
         rawDiagramDataElement.attr("content", outputStream.toString());
 
         return new ByteArrayInputStream(htmlDiagram.toString()
-                                                   .getBytes(UTF_8));
+                .getBytes(UTF_8));
     }
 
 

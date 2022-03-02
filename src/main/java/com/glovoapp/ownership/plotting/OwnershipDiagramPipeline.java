@@ -13,18 +13,18 @@ public interface OwnershipDiagramPipeline {
     void createDiagram(final Set<ClassOwnership> domainOwnership);
 
     static <Id extends Identifier<Id>, RelationshipType> OwnershipDiagramPipeline of(
-        final IdentifierGenerator<Id> idGenerator,
-        final OwnershipDiagramFactory<RelationshipType> diagramFactory,
-        final DiagramRenderer<Id, RelationshipType> renderer,
-        final DiagramDataSink diagramDataSink
+            final IdentifierGenerator<Id> idGenerator,
+            final OwnershipDiagramFactory<RelationshipType> diagramFactory,
+            final DiagramRenderer<Id, RelationshipType> renderer,
+            final DiagramDataSink diagramDataSink
     ) {
         return domainOwnership -> diagramDataSink.accept(
-            renderer.renderDiagram(
-                diagramFactory.createOwnershipDiagram(
-                    domainOwnership,
-                    idGenerator
+                renderer.renderDiagram(
+                        diagramFactory.createOwnershipDiagram(
+                                domainOwnership,
+                                idGenerator
+                        )
                 )
-            )
         );
     }
 

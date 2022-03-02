@@ -33,14 +33,14 @@ public final class ClassOwnershipPlotter {
      */
     public final void createClasspathDiagram(final String packagePrefix) {
         createDiagram(
-            classpathLoader.loadAllClasses(packagePrefix)
-                           .stream()
-                           .filter(aClass -> Optional.of(aClass)
-                                                     .map(Class::getPackage)
-                                                     .map(Package::getName)
-                                                     .map(packageName -> packageName.startsWith(packagePrefix))
-                                                     .orElse(false))
-                           .collect(toSet())
+                classpathLoader.loadAllClasses(packagePrefix)
+                        .stream()
+                        .filter(aClass -> Optional.of(aClass)
+                                .map(Class::getPackage)
+                                .map(Package::getName)
+                                .map(packageName -> packageName.startsWith(packagePrefix))
+                                .orElse(false))
+                        .collect(toSet())
         );
     }
 
@@ -52,10 +52,10 @@ public final class ClassOwnershipPlotter {
 
     private Set<ClassOwnership> extractAndFilter(final Set<Class<?>> domain) {
         final Set<ClassOwnership> fullDomainOwnership = domain.stream()
-                                                              .map(extractor::getOwnershipOf)
-                                                              .filter(Optional::isPresent)
-                                                              .map(Optional::get)
-                                                              .collect(Collectors.toSet());
+                .map(extractor::getOwnershipOf)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .collect(Collectors.toSet());
 
         return filter.apply(fullDomainOwnership);
     }

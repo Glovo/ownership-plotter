@@ -18,10 +18,10 @@ public interface DomainOwnershipFilter extends UnaryOperator<Set<ClassOwnership>
 
     static DomainOwnershipFilter simple(final ClassOwnershipFilter filter) {
         return domainOwnership -> domainOwnership.stream()
-                                                 .filter(ownership -> filter.test(
-                                                     new OwnershipContext(ownership, domainOwnership)
-                                                 ))
-                                                 .collect(toSet());
+                .filter(ownership -> filter.test(
+                        new OwnershipContext(ownership, domainOwnership)
+                ))
+                .collect(toSet());
     }
 
     /**
@@ -43,28 +43,28 @@ public interface DomainOwnershipFilter extends UnaryOperator<Set<ClassOwnership>
 
             try {
                 return executorService
-                    .invokeAll(
-                        partitionedOwnerships.stream()
-                                             .map(ownerships ->
-                                                 (Callable<Set<ClassOwnership>>) () ->
-                                                     ownerships.stream()
-                                                               .filter(ownership -> filter.test(
-                                                                   new OwnershipContext(ownership, domainOwnership)
-                                                               ))
-                                                               .collect(toSet())
-                                             )
-                                             .collect(toList())
-                    )
-                    .stream()
-                    .map(future -> {
-                        try {
-                            return future.get();
-                        } catch (final Exception exception) {
-                            throw new RuntimeException(exception);
-                        }
-                    })
-                    .flatMap(Collection::stream)
-                    .collect(toSet());
+                        .invokeAll(
+                                partitionedOwnerships.stream()
+                                        .map(ownerships ->
+                                                (Callable<Set<ClassOwnership>>) () ->
+                                                        ownerships.stream()
+                                                                .filter(ownership -> filter.test(
+                                                                        new OwnershipContext(ownership, domainOwnership)
+                                                                ))
+                                                                .collect(toSet())
+                                        )
+                                        .collect(toList())
+                        )
+                        .stream()
+                        .map(future -> {
+                            try {
+                                return future.get();
+                            } catch (final Exception exception) {
+                                throw new RuntimeException(exception);
+                            }
+                        })
+                        .flatMap(Collection::stream)
+                        .collect(toSet());
             } catch (final InterruptedException exception) {
                 throw new RuntimeException(exception);
             }

@@ -10,8 +10,8 @@ import java.util.Set;
 public interface OwnershipDiagramFactory<RelationshipType> {
 
     <Id extends Identifier<Id>> Diagram<Id, RelationshipType> createOwnershipDiagram(
-        final Set<ClassOwnership> domainOwnership,
-        final IdentifierGenerator<Id> idGenerator
+            final Set<ClassOwnership> domainOwnership,
+            final IdentifierGenerator<Id> idGenerator
     );
 
 }

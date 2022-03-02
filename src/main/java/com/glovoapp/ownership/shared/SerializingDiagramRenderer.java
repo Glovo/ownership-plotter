@@ -23,7 +23,7 @@ import java.util.function.Function;
  */
 @RequiredArgsConstructor
 public final class SerializingDiagramRenderer<Id extends Identifier<Id>, RelationshipType>
-    implements DiagramRenderer<Id, RelationshipType> {
+        implements DiagramRenderer<Id, RelationshipType> {
 
     private final Function<Diagram<Id, RelationshipType>, String> serializer;
 
@@ -63,8 +63,8 @@ public final class SerializingDiagramRenderer<Id extends Identifier<Id>, Relatio
     @SneakyThrows
     public final InputStream renderDiagram(final Diagram<Id, RelationshipType> diagram) {
         return new ByteArrayInputStream(
-            serializer.apply(diagram)
-                      .getBytes()
+                serializer.apply(diagram)
+                        .getBytes()
         );
     }
 

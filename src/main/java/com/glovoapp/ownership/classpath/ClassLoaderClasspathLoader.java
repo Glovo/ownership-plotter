@@ -37,17 +37,17 @@ public final class ClassLoaderClasspathLoader implements ClasspathLoader {
         final Field classesField = ClassLoader.class.getDeclaredField("classes");
         classesField.setAccessible(true);
         @SuppressWarnings("unchecked") final Vector<Class<?>> classesVector
-            = (Vector<Class<?>>) classesField.get(classLoader);
+                = (Vector<Class<?>>) classesField.get(classLoader);
         final Set<Class<?>> classesSet = new HashSet<>(classesVector);
         final Set<Class<?>> parentClassesSet = Optional.of(classLoader)
-                                                       .map(ClassLoader::getParent)
-                                                       .map(ClassLoaderClasspathLoader::new)
-                                                       .map(parentLoader -> parentLoader.loadAllClasses(packagePrefix))
-                                                       .orElseGet(Collections::emptySet);
+                .map(ClassLoader::getParent)
+                .map(ClassLoaderClasspathLoader::new)
+                .map(parentLoader -> parentLoader.loadAllClasses(packagePrefix))
+                .orElseGet(Collections::emptySet);
         return Stream.concat(classesSet.stream(), parentClassesSet.stream())
-                     .filter(ClassLoaderClasspathLoader::isProperlyLoaded)
-                     .filter(theClass -> classIsInPackageWithPrefix(theClass, packagePrefix))
-                     .collect(toSet());
+                .filter(ClassLoaderClasspathLoader::isProperlyLoaded)
+                .filter(theClass -> classIsInPackageWithPrefix(theClass, packagePrefix))
+                .collect(toSet());
     }
 
     private static boolean isProperlyLoaded(final Class<?> theClass) {
@@ -61,10 +61,10 @@ public final class ClassLoaderClasspathLoader implements ClasspathLoader {
 
     private static boolean classIsInPackageWithPrefix(final Class<?> theClass, final String packagePrefix) {
         return Optional.of(theClass)
-                       .map(Class::getPackage)
-                       .map(Package::getName)
-                       .map(packageName -> packageName.startsWith(packagePrefix))
-                       .orElse(false);
+                .map(Class::getPackage)
+                .map(Package::getName)
+                .map(packageName -> packageName.startsWith(packagePrefix))
+                .orElse(false);
     }
 
 }

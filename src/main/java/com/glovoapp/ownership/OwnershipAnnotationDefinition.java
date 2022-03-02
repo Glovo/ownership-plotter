@@ -34,23 +34,23 @@ public interface OwnershipAnnotationDefinition {
                                                                        @NonNull final Function<A, ?> ownerGetter,
                                                                        @NonNull final List<MetaDataExtractor<A, ?>> metaDataExtractors) {
         return define(
-            annotationClass,
-            ownerGetter,
-            annotation -> metaDataExtractors.stream()
-                                            .map(extractor -> Pair.of(extractor.getName(), extractor.getMetaDataGetter()
-                                                                                                    .apply(annotation)))
-                                            .filter(pair -> pair.getRight()
-                                                                .isPresent())
-                                            .collect(toMap(
-                                                Pair::getLeft,
-                                                pair -> pair.getRight()
-                                                            .get(),
-                                                (firstData, secondData) -> {
-                                                    throw new IllegalStateException(
-                                                        "given two extractors for the same meta data element"
-                                                    );
-                                                }
-                                            ))
+                annotationClass,
+                ownerGetter,
+                annotation -> metaDataExtractors.stream()
+                        .map(extractor -> Pair.of(extractor.getName(), extractor.getMetaDataGetter()
+                                .apply(annotation)))
+                        .filter(pair -> pair.getRight()
+                                .isPresent())
+                        .collect(toMap(
+                                Pair::getLeft,
+                                pair -> pair.getRight()
+                                        .get(),
+                                (firstData, secondData) -> {
+                                    throw new IllegalStateException(
+                                            "given two extractors for the same meta data element"
+                                    );
+                                }
+                        ))
         );
     }
 
@@ -63,34 +63,34 @@ public interface OwnershipAnnotationDefinition {
                 );
 
         return givenElement -> Optional.ofNullable(givenElement)
-                                       .map(it -> {
-                                           try {
-                                               return Optional.of(annotationClass)
-                                                              .map(it::getAnnotation)
-                                                              .orElseGet(() -> annotationScanner(annotationClass, it)
-                                                              .orElseGet(() -> parentPackageAnnotationScanner.scan(it)
-                                                              .orElse(null)));
-                                           } catch (final Exception exception) {
-                                               LoggerFactory.getLogger(OwnershipAnnotationDefinition.class)
-                                                            .warn(
-                                                                "failed to get annotation {} from {}, class will be ignored",
-                                                                annotationClass.getSimpleName(),
-                                                                it,
-                                                                exception
-                                                            );
-                                               return null;
-                                           }
-                                       })
-                                       .map(annotation -> {
-                                           try {
-                                               return new OwnershipData(
-                                                   String.valueOf(ownerGetter.apply(annotation)),
-                                                   metaDataGetter.apply(annotation)
-                                               );
-                                           } catch (final Exception ownerGetterInvocationException) {
-                                               throw new OwnerFetchingException(ownerGetterInvocationException);
-                                           }
-                                       });
+                .map(it -> {
+                    try {
+                        return Optional.of(annotationClass)
+                                .map(it::getAnnotation)
+                                .orElseGet(() -> annotationScanner(annotationClass, it)
+                                        .orElseGet(() -> parentPackageAnnotationScanner.scan(it)
+                                                .orElse(null)));
+                    } catch (final Exception exception) {
+                        LoggerFactory.getLogger(OwnershipAnnotationDefinition.class)
+                                .warn(
+                                        "failed to get annotation {} from {}, class will be ignored",
+                                        annotationClass.getSimpleName(),
+                                        it,
+                                        exception
+                                );
+                        return null;
+                    }
+                })
+                .map(annotation -> {
+                    try {
+                        return new OwnershipData(
+                                String.valueOf(ownerGetter.apply(annotation)),
+                                metaDataGetter.apply(annotation)
+                        );
+                    } catch (final Exception ownerGetterInvocationException) {
+                        throw new OwnerFetchingException(ownerGetterInvocationException);
+                    }
+                });
     }
 
     //TODO extract to class and make interface
@@ -151,8 +151,8 @@ public interface OwnershipAnnotationDefinition {
      */
     default OwnershipAnnotationDefinition or(final OwnershipAnnotationDefinition another) {
         return givenElement -> Optional.of(this.getOwnershipData(givenElement))
-                                       .filter(Optional::isPresent)
-                                       .orElseGet(() -> another.getOwnershipData(givenElement));
+                .filter(Optional::isPresent)
+                .orElseGet(() -> another.getOwnershipData(givenElement));
     }
 
     default boolean hasOwner(final AnnotatedElement givenElement) {
@@ -167,8 +167,8 @@ public interface OwnershipAnnotationDefinition {
         private final Function<A, Optional<T>> metaDataGetter;
 
         public static <A extends Annotation, T> MetaDataExtractor<A, T> metaDataExtractor(
-            final String key,
-            final Function<A, Optional<T>> metaDataGetter
+                final String key,
+                final Function<A, Optional<T>> metaDataGetter
         ) {
             return new MetaDataExtractor<>(key, metaDataGetter);
         }

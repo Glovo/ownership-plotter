@@ -28,32 +28,32 @@ public final class AnnotationBasedClassOwnershipExtractor implements ClassOwners
             final Optional<OwnershipData> classOwner = ownershipAnnotationDefinition.getOwnershipData(aClass);
 
             final Map<Method, OwnershipData> methodOwners
-                = Arrays.stream(aClass.getDeclaredMethods())
-                        .filter(ownershipAnnotationDefinition::hasOwner)
-                        .collect(toMap(
+                    = Arrays.stream(aClass.getDeclaredMethods())
+                    .filter(ownershipAnnotationDefinition::hasOwner)
+                    .collect(toMap(
                             identity(),
                             method -> ownershipAnnotationDefinition.getOwnershipData(method)
-                                                                   .orElseThrow(() -> new IllegalStateException(
-                                                                       "this should never happen"
-                                                                   ))));
+                                    .orElseThrow(() -> new IllegalStateException(
+                                            "this should never happen"
+                                    ))));
 
             final Map<Field, LazyReference<Optional<ClassOwnership>>> dependenciesOwnership
-                = Arrays.stream(aClass.getDeclaredFields())
-                        .collect(toMap(
+                    = Arrays.stream(aClass.getDeclaredFields())
+                    .collect(toMap(
                             field -> field,
                             field -> new LazyReference<>(() -> getOwnershipOf(field.getType()))
-                        ));
+                    ));
 
             return Optional.of(new ClassOwnership(
-                getClass(),
-                aClass,
-                classOwner.map(OwnershipData::getOwner)
-                          .orElse(null),
-                classOwner.map(OwnershipData::getMetaData)
-                          .orElseGet(Collections::emptyMap),
-                transformValues(methodOwners, OwnershipData::getOwner),
-                transformValues(methodOwners, OwnershipData::getMetaData),
-                dependenciesOwnership
+                    getClass(),
+                    aClass,
+                    classOwner.map(OwnershipData::getOwner)
+                            .orElse(null),
+                    classOwner.map(OwnershipData::getMetaData)
+                            .orElseGet(Collections::emptyMap),
+                    transformValues(methodOwners, OwnershipData::getOwner),
+                    transformValues(methodOwners, OwnershipData::getMetaData),
+                    dependenciesOwnership
             ));
         } catch (final NoClassDefFoundError error) {
             log.info("failed to fetch ownership of {}", aClass);

@@ -26,7 +26,7 @@ public final class PlantUMLIdentifier implements Identifier<PlantUMLIdentifier> 
     public final String toString() {
         // Plant UML IDs do not accept dashes but do accept underscores and alphanumeric characters.
         return delegate.toString()
-                       .replace('-', '_');
+                .replace('-', '_');
     }
 
 }

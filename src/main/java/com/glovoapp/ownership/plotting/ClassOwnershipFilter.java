@@ -25,8 +25,8 @@ public interface ClassOwnershipFilter extends Predicate<OwnershipContext> {
 
     static ClassOwnershipFilter isInPackageThatStartsWith(final String packagePrefix) {
         return isInPackageThat(thePackage -> thePackage.getName()
-                                                       .startsWith(packagePrefix))
-            .named("is in package that starts with " + packagePrefix);
+                .startsWith(packagePrefix))
+                .named("is in package that starts with " + packagePrefix);
     }
 
     static ClassOwnershipFilter isInPackageMatchingRegex(final String packageRegex) {
@@ -35,19 +35,19 @@ public interface ClassOwnershipFilter extends Predicate<OwnershipContext> {
 
     static ClassOwnershipFilter isInPackageMatchingRegex(final Pattern packagePattern) {
         return isInPackageThat(thePackage -> packagePattern.matcher(thePackage.getName())
-                                                           .matches())
-            .named("is in package that matches pattern " + packagePattern);
+                .matches())
+                .named("is in package that matches pattern " + packagePattern);
     }
 
     static ClassOwnershipFilter isInPackageThat(final Predicate<Package> packagePredicate) {
         return named(
-            context -> Optional.of(context)
-                               .map(OwnershipContext::getClassOwnership)
-                               .map(ClassOwnership::getTheClass)
-                               .map(Class::getPackage)
-                               .map(packagePredicate::test)
-                               .orElse(false),
-            "is in package that matches " + packagePredicate
+                context -> Optional.of(context)
+                        .map(OwnershipContext::getClassOwnership)
+                        .map(ClassOwnership::getTheClass)
+                        .map(Class::getPackage)
+                        .map(packagePredicate::test)
+                        .orElse(false),
+                "is in package that matches " + packagePredicate
         );
     }
 
@@ -57,116 +57,116 @@ public interface ClassOwnershipFilter extends Predicate<OwnershipContext> {
 
     static ClassOwnershipFilter isOwnedBy(final String desiredOwner) {
         return named(
-            context -> Objects.equals(context.getClassOwnership()
-                                             .getClassOwner(), desiredOwner),
-            "is owned by " + desiredOwner
+                context -> Objects.equals(context.getClassOwnership()
+                        .getClassOwner(), desiredOwner),
+                "is owned by " + desiredOwner
         );
     }
 
     static ClassOwnershipFilter hasDependenciesOwnedBy(final String desiredOwner) {
         return hasDependenciesThat(isOwnedBy(desiredOwner))
-            .named("has dependencies owned by " + desiredOwner);
+                .named("has dependencies owned by " + desiredOwner);
     }
 
     static ClassOwnershipFilter hasDependenciesWithOwnerOtherThan(final String undesiredOwner) {
         return hasDependenciesThat(isNotOwnedBy(undesiredOwner))
-            .named("has dependencies with owner other than " + undesiredOwner);
+                .named("has dependencies with owner other than " + undesiredOwner);
     }
 
     static ClassOwnershipFilter hasDependenciesThat(final ClassOwnershipFilter dependencyFilter) {
         return named(
-            context -> context.getClassOwnership()
-                              .getDependencyOwnershipsStream()
-                              .map(Entry::getValue)
-                              .anyMatch(dependencyOwnership ->
-                                  dependencyFilter.test(
-                                      new OwnershipContext(dependencyOwnership, context.getDomainOwnership())
-                                  )
-                              ),
-            "has dependencies that (" + dependencyFilter + ')'
+                context -> context.getClassOwnership()
+                        .getDependencyOwnershipsStream()
+                        .map(Entry::getValue)
+                        .anyMatch(dependencyOwnership ->
+                                dependencyFilter.test(
+                                        new OwnershipContext(dependencyOwnership, context.getDomainOwnership())
+                                )
+                        ),
+                "has dependencies that (" + dependencyFilter + ')'
         );
     }
 
     static ClassOwnershipFilter hasMethodsOwnedBy(final String desiredOwner) {
         return hasMethodsWithOwnerThat(methodOwner -> Objects.equals(methodOwner, desiredOwner))
-            .named("has methods owned by " + desiredOwner);
+                .named("has methods owned by " + desiredOwner);
     }
 
     static ClassOwnershipFilter hasMethodsWithOwnerOtherThan(final String undesiredOwner) {
         return hasMethodsWithOwnerThat(methodOwner -> !Objects.equals(methodOwner, undesiredOwner))
-            .named("has methods with owner other than " + undesiredOwner);
+                .named("has methods with owner other than " + undesiredOwner);
     }
 
     static ClassOwnershipFilter hasMethodsWithOwnerThat(final Predicate<String> ownerPredicate) {
         return named(
-            context -> context.getClassOwnership()
-                              .getMethodOwners()
-                              .values()
-                              .stream()
-                              .anyMatch(ownerPredicate),
-            "has methods with owner matching " + ownerPredicate
+                context -> context.getClassOwnership()
+                        .getMethodOwners()
+                        .values()
+                        .stream()
+                        .anyMatch(ownerPredicate),
+                "has methods with owner matching " + ownerPredicate
         );
     }
 
     static ClassOwnershipFilter isADependencyOfAClassThat(final ClassOwnershipFilter dependentFilter) {
         return named(
-            context -> context.getDomainOwnership()
-                              .stream()
-                              .filter(dependentOwnership ->
-                                  dependentFilter.test(
-                                      new OwnershipContext(dependentOwnership, context.getDomainOwnership())
-                                  )
-                              )
-                              .anyMatch(ownership -> ownership.getDependencyOwnershipsStream()
-                                                              .map(Entry::getValue)
-                                                              .anyMatch(context.getClassOwnership()::equals)),
-            "is a dependency of a class that " + dependentFilter
+                context -> context.getDomainOwnership()
+                        .stream()
+                        .filter(dependentOwnership ->
+                                dependentFilter.test(
+                                        new OwnershipContext(dependentOwnership, context.getDomainOwnership())
+                                )
+                        )
+                        .anyMatch(ownership -> ownership.getDependencyOwnershipsStream()
+                                .map(Entry::getValue)
+                                .anyMatch(context.getClassOwnership()::equals)),
+                "is a dependency of a class that " + dependentFilter
         );
     }
 
     static ClassOwnershipFilter hasMetaDataElementNamed(final String metaDataElementName) {
         return named(
-            context -> context.getClassOwnership()
-                              .getMetaData()
-                              .containsKey(metaDataElementName),
-            "has " + metaDataElementName + " meta data element"
+                context -> context.getClassOwnership()
+                        .getMetaData()
+                        .containsKey(metaDataElementName),
+                "has " + metaDataElementName + " meta data element"
         );
     }
 
     static ClassOwnershipFilter hasMethodsWithMetaDataElementNamed(final String methodMetaDataElementName) {
         return named(
-            context -> context.getClassOwnership()
-                              .getMethodMetaData()
-                              .values()
-                              .stream()
-                              .anyMatch(methodMetaData -> methodMetaData.containsKey(methodMetaDataElementName)),
-            "has methods with " + methodMetaDataElementName + " meta data element"
+                context -> context.getClassOwnership()
+                        .getMethodMetaData()
+                        .values()
+                        .stream()
+                        .anyMatch(methodMetaData -> methodMetaData.containsKey(methodMetaDataElementName)),
+                "has methods with " + methodMetaDataElementName + " meta data element"
         );
     }
 
     static ClassOwnershipFilter hasMetaDataElementThat(final Predicate<Entry<String, ?>> metaDataElementPredicate) {
         return named(
-            context -> context.getClassOwnership()
-                              .getMetaData()
-                              .entrySet()
-                              .stream()
-                              .anyMatch(metaDataElementPredicate),
-            "has meta data element matching " + metaDataElementPredicate
+                context -> context.getClassOwnership()
+                        .getMetaData()
+                        .entrySet()
+                        .stream()
+                        .anyMatch(metaDataElementPredicate),
+                "has meta data element matching " + metaDataElementPredicate
         );
     }
 
     static ClassOwnershipFilter hasMethodsWithMetaDataElementThat(
-        final Predicate<Entry<String, ?>> methodMetaDataElementPredicate
+            final Predicate<Entry<String, ?>> methodMetaDataElementPredicate
     ) {
         return named(
-            context -> context.getClassOwnership()
-                              .getMethodMetaData()
-                              .values()
-                              .stream()
-                              .map(Map::entrySet)
-                              .flatMap(Collection::stream)
-                              .anyMatch(methodMetaDataElementPredicate),
-            "has methods with meta data element matching " + methodMetaDataElementPredicate
+                context -> context.getClassOwnership()
+                        .getMethodMetaData()
+                        .values()
+                        .stream()
+                        .map(Map::entrySet)
+                        .flatMap(Collection::stream)
+                        .anyMatch(methodMetaDataElementPredicate),
+                "has methods with meta data element matching " + methodMetaDataElementPredicate
         );
     }
 
@@ -202,11 +202,11 @@ public interface ClassOwnershipFilter extends Predicate<OwnershipContext> {
     default ClassOwnershipFilter cached() {
         final ConcurrentHashMap<ClassOwnership, Boolean> cache = new ConcurrentHashMap<>();
         return named(
-            ownershipContext -> cache.computeIfAbsent(
-                ownershipContext.getClassOwnership(),
-                classOwnership -> this.test(ownershipContext)
-            ),
-            "CACHED[" + this + ']'
+                ownershipContext -> cache.computeIfAbsent(
+                        ownershipContext.getClassOwnership(),
+                        classOwnership -> this.test(ownershipContext)
+                ),
+                "CACHED[" + this + ']'
         );
     }
 
@@ -216,12 +216,12 @@ public interface ClassOwnershipFilter extends Predicate<OwnershipContext> {
      */
     default ClassOwnershipFilter withResultListener(final ClassOwnershipFilterResultListener contextAndResultListener) {
         return named(
-            (OwnershipContext ownershipContext) -> {
-                boolean result = this.test(ownershipContext);
-                contextAndResultListener.accept(this, ownershipContext, result);
-                return result;
-            },
-            this.toString()
+                (OwnershipContext ownershipContext) -> {
+                    boolean result = this.test(ownershipContext);
+                    contextAndResultListener.accept(this, ownershipContext, result);
+                    return result;
+                },
+                this.toString()
         );
     }
 
@@ -239,41 +239,41 @@ public interface ClassOwnershipFilter extends Predicate<OwnershipContext> {
         final SingletonReference<Callback> progressCallbackReference = new SingletonReference<>();
         final AtomicLong highestFilteringTimeMillis = new AtomicLong(0);
         return named(
-            ownershipContext -> {
-                final int domainOwnershipSize = ownershipContext.getDomainOwnership()
-                                                                .size();
-                final Callback progressCallback = progressCallbackReference.initializeAndGet(() ->
-                    ProgressWindow.start(
-                        "filtering progress of " + this,
-                        domainOwnershipSize
-                    )
-                );
+                ownershipContext -> {
+                    final int domainOwnershipSize = ownershipContext.getDomainOwnership()
+                            .size();
+                    final Callback progressCallback = progressCallbackReference.initializeAndGet(() ->
+                            ProgressWindow.start(
+                                    "filtering progress of " + this,
+                                    domainOwnershipSize
+                            )
+                    );
 
-                final long startTime = currentTimeMillis();
-                final boolean result = this.test(ownershipContext);
-                final long endTime = currentTimeMillis();
-                final long filteringTime = endTime - startTime;
+                    final long startTime = currentTimeMillis();
+                    final boolean result = this.test(ownershipContext);
+                    final long endTime = currentTimeMillis();
+                    final long filteringTime = endTime - startTime;
 
-                highestFilteringTimeMillis.updateAndGet(currentHighestFilteringTime -> {
-                    if (filteringTime > currentHighestFilteringTime) {
-                        log.info(
-                            "filtering of {} in {} took longest so far: {}ms",
-                            ownershipContext.getClassOwnership()
+                    highestFilteringTimeMillis.updateAndGet(currentHighestFilteringTime -> {
+                        if (filteringTime > currentHighestFilteringTime) {
+                            log.info(
+                                    "filtering of {} in {} took longest so far: {}ms",
+                                    ownershipContext.getClassOwnership()
                                             .getTheClass()
                                             .getCanonicalName(),
-                            this,
-                            filteringTime
-                        );
-                        return filteringTime;
-                    } else {
-                        return currentHighestFilteringTime;
-                    }
-                });
+                                    this,
+                                    filteringTime
+                            );
+                            return filteringTime;
+                        } else {
+                            return currentHighestFilteringTime;
+                        }
+                    });
 
-                progressCallback.incrementPerformedOperations();
-                return result;
-            },
-            "DEBUGGED[" + this + ']'
+                    progressCallback.incrementPerformedOperations();
+                    return result;
+                },
+                "DEBUGGED[" + this + ']'
         );
     }
 
