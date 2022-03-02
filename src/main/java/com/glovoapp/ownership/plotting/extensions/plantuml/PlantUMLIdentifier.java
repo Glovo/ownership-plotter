@@ -1,12 +1,13 @@
 package com.glovoapp.ownership.plotting.extensions.plantuml;
 
-import static lombok.AccessLevel.PACKAGE;
-
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.glovoapp.diagrams.Identifier;
-import java.util.UUID;
 import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
+
+import java.util.UUID;
+
+import static lombok.AccessLevel.PACKAGE;
 
 
 @EqualsAndHashCode

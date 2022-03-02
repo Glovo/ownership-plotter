@@ -1,8 +1,9 @@
 package com.glovoapp.ownership;
 
+import lombok.RequiredArgsConstructor;
+
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
-import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 public final class CachedClassOwnershipExtractor implements ClassOwnershipExtractor {

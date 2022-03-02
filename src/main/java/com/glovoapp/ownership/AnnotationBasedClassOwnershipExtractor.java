@@ -1,19 +1,20 @@
 package com.glovoapp.ownership;
 
-import static com.glovoapp.ownership.shared.Maps.transformValues;
-import static java.util.function.Function.identity;
-import static java.util.stream.Collectors.toMap;
-
 import com.glovoapp.ownership.OwnershipAnnotationDefinition.OwnershipData;
 import com.glovoapp.ownership.shared.LazyReference;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+
+import static com.glovoapp.ownership.shared.Maps.transformValues;
+import static java.util.function.Function.identity;
+import static java.util.stream.Collectors.toMap;
 
 @Slf4j
 @RequiredArgsConstructor

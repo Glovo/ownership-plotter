@@ -1,11 +1,12 @@
 package com.glovoapp.ownership.plotting;
 
-import static java.lang.System.currentTimeMillis;
-
 import com.glovoapp.ownership.ClassOwnership;
 import com.glovoapp.ownership.shared.ProgressWindow;
 import com.glovoapp.ownership.shared.ProgressWindow.Callback;
 import com.glovoapp.ownership.shared.SingletonReference;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.Collection;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -17,8 +18,8 @@ import java.util.function.BiFunction;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import static java.lang.System.currentTimeMillis;
 
 public interface ClassOwnershipFilter extends Predicate<OwnershipContext> {
 

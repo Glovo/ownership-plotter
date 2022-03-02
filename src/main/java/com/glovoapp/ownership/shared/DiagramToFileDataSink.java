@@ -1,12 +1,13 @@
 package com.glovoapp.ownership.shared;
 
 import com.glovoapp.diagrams.DiagramDataSink;
+import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
-import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 
 
 @RequiredArgsConstructor

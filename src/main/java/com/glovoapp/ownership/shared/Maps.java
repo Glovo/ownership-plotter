@@ -1,14 +1,15 @@
 package com.glovoapp.ownership.shared;
 
-import static java.util.stream.Collectors.toMap;
-import static lombok.AccessLevel.PRIVATE;
+import lombok.NoArgsConstructor;
 
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.stream.Stream;
-import lombok.NoArgsConstructor;
+
+import static java.util.stream.Collectors.toMap;
+import static lombok.AccessLevel.PRIVATE;
 
 @NoArgsConstructor(access = PRIVATE)
 public final class Maps {

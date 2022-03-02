@@ -1,10 +1,10 @@
 package com.glovoapp.ownership.plotting.extensions.plantuml;
 
-import static java.util.UUID.randomUUID;
-
 import com.glovoapp.diagrams.IdentifierGenerator;
 import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
+
+import static java.util.UUID.randomUUID;
 
 
 @EqualsAndHashCode

@@ -1,6 +1,9 @@
 package com.glovoapp.ownership;
 
 import com.glovoapp.ownership.shared.LazyReference;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.AbstractMap.SimpleEntry;
@@ -10,8 +13,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Stream;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 
 /**
  * We assume that fields of ClassOwnership are a pre-calculated cache and are immutable. Therefore two {@link

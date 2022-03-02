@@ -1,17 +1,18 @@
 package com.glovoapp.ownership.plotting;
 
-import static com.glovoapp.ownership.shared.Sets.partition;
-import static java.util.Objects.requireNonNull;
-import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toSet;
-
 import com.glovoapp.ownership.ClassOwnership;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.function.UnaryOperator;
+
+import static com.glovoapp.ownership.shared.Sets.partition;
+import static java.util.Objects.requireNonNull;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 
 public interface DomainOwnershipFilter extends UnaryOperator<Set<ClassOwnership>> {
 

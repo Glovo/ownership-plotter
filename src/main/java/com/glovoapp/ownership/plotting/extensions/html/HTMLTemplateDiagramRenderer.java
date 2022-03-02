@@ -1,23 +1,24 @@
 package com.glovoapp.ownership.plotting.extensions.html;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
-
 import com.glovoapp.diagrams.Diagram;
 import com.glovoapp.diagrams.DiagramRenderer;
 import com.glovoapp.ownership.plotting.ClassRelationship;
 import com.glovoapp.ownership.shared.BufferedDiagramDataSink;
 import com.glovoapp.ownership.shared.SerializingDiagramRenderer;
 import com.glovoapp.ownership.shared.UUIDIdentifier;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
-import java.util.Locale;
-import java.util.Optional;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.util.Locale;
+import java.util.Optional;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 @Slf4j
 public final class HTMLTemplateDiagramRenderer implements DiagramRenderer<UUIDIdentifier, ClassRelationship> {

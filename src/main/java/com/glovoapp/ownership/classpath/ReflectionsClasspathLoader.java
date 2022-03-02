@@ -1,8 +1,9 @@
 package com.glovoapp.ownership.classpath;
 
-import java.util.Set;
 import org.reflections.Reflections;
 import org.reflections.scanners.SubTypesScanner;
+
+import java.util.Set;
 
 /**
  * {@link ClasspathLoader} that uses {@link Reflections} for loading classes.

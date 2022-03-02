@@ -1,21 +1,18 @@
 package com.glovoapp.ownership.shared;
 
-import static com.glovoapp.ownership.shared.Sets.union;
-import static java.util.stream.Collectors.toSet;
-import static java.util.stream.Stream.concat;
-
-import com.glovoapp.diagrams.Component;
-import com.glovoapp.diagrams.Diagram;
-import com.glovoapp.diagrams.DiagramRenderer;
-import com.glovoapp.diagrams.Identifier;
-import com.glovoapp.diagrams.Relationship;
+import com.glovoapp.diagrams.*;
 import com.glovoapp.diagrams.Relationship.SimpleRelationship;
 import com.glovoapp.ownership.plotting.ClassRelationship;
+import lombok.RequiredArgsConstructor;
+
 import java.io.InputStream;
 import java.util.Random;
 import java.util.Set;
 import java.util.function.Supplier;
-import lombok.RequiredArgsConstructor;
+
+import static com.glovoapp.ownership.shared.Sets.union;
+import static java.util.stream.Collectors.toSet;
+import static java.util.stream.Stream.concat;
 
 @RequiredArgsConstructor
 public final class NeighborRandomizerDiagramRendererWrapper<Id extends Identifier<Id>, RelationshipType>

@@ -1,18 +1,15 @@
 package com.glovoapp.ownership.classpath;
 
-import static java.lang.Thread.currentThread;
-import static java.util.stream.Collectors.toSet;
-
-import java.lang.reflect.Field;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
-import java.util.Vector;
-import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+
+import java.lang.reflect.Field;
+import java.util.*;
+import java.util.stream.Stream;
+
+import static java.lang.Thread.currentThread;
+import static java.util.stream.Collectors.toSet;
 
 /**
  * Uses all currently loaded classes as the classpath definition. This version of {@link ClasspathLoader} is much more

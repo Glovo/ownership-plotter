@@ -1,14 +1,14 @@
 package com.glovoapp.ownership;
 
-import static java.util.Collections.emptyMap;
-import static java.util.stream.Collectors.toMap;
-import static lombok.AccessLevel.PACKAGE;
-import static lombok.AccessLevel.PRIVATE;
-
 import com.glovoapp.ownership.scanning.AnnotationScanner;
 import com.glovoapp.ownership.scanning.CachedParentPackageAnnotationScanner;
 import com.glovoapp.ownership.scanning.ParentPackageAnnotationScanner;
 import com.glovoapp.ownership.shared.Pair;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import org.slf4j.LoggerFactory;
+
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Method;
@@ -17,10 +17,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import org.slf4j.LoggerFactory;
+
+import static java.util.Collections.emptyMap;
+import static java.util.stream.Collectors.toMap;
+import static lombok.AccessLevel.PACKAGE;
+import static lombok.AccessLevel.PRIVATE;
 
 public interface OwnershipAnnotationDefinition {
 

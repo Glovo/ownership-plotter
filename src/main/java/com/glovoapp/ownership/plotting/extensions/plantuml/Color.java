@@ -1,11 +1,12 @@
 package com.glovoapp.ownership.plotting.extensions.plantuml;
 
-import static java.util.Arrays.asList;
+import lombok.EqualsAndHashCode;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
-import lombok.EqualsAndHashCode;
+
+import static java.util.Arrays.asList;
 
 
 @EqualsAndHashCode

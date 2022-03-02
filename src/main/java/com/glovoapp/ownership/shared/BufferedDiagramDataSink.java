@@ -1,10 +1,11 @@
 package com.glovoapp.ownership.shared;
 
 import com.glovoapp.diagrams.DiagramDataSink;
-import java.io.InputStream;
-import java.io.OutputStream;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+
+import java.io.InputStream;
+import java.io.OutputStream;
 
 @RequiredArgsConstructor
 public final class BufferedDiagramDataSink implements DiagramDataSink {

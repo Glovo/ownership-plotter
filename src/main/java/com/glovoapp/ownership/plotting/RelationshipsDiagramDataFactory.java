@@ -1,11 +1,5 @@
 package com.glovoapp.ownership.plotting;
 
-import static com.glovoapp.ownership.shared.Sets.union;
-import static java.util.Collections.emptySet;
-import static java.util.function.Function.identity;
-import static java.util.stream.Collectors.toMap;
-import static java.util.stream.Collectors.toSet;
-
 import com.glovoapp.diagrams.Component;
 import com.glovoapp.diagrams.Component.SimpleComponent;
 import com.glovoapp.diagrams.Diagram;
@@ -14,12 +8,19 @@ import com.glovoapp.diagrams.Identifier;
 import com.glovoapp.diagrams.IdentifierGenerator;
 import com.glovoapp.diagrams.Relationship.SimpleRelationship;
 import com.glovoapp.ownership.ClassOwnership;
+
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
+
+import static com.glovoapp.ownership.shared.Sets.union;
+import static java.util.Collections.emptySet;
+import static java.util.function.Function.identity;
+import static java.util.stream.Collectors.toMap;
+import static java.util.stream.Collectors.toSet;
 
 public final class RelationshipsDiagramDataFactory implements OwnershipDiagramFactory<ClassRelationship> {
 

@@ -1,21 +1,10 @@
 package com.glovoapp.ownership.plotting.extensions.plantuml;
 
-import static com.glovoapp.ownership.plotting.extensions.plantuml.Color.randomReadableColor;
-import static com.glovoapp.ownership.shared.Strings.repeat;
-import static java.util.stream.Collectors.joining;
-import static lombok.AccessLevel.PRIVATE;
-
 import com.glovoapp.diagrams.Component;
 import com.glovoapp.diagrams.Diagram;
 import com.glovoapp.diagrams.DiagramRenderer;
 import com.glovoapp.diagrams.Relationship;
 import com.glovoapp.ownership.plotting.ClassRelationship;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
-import java.util.Random;
-import java.util.stream.IntStream;
-import java.util.stream.Stream;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -23,6 +12,18 @@ import lombok.extern.slf4j.Slf4j;
 import net.sourceforge.plantuml.FileFormat;
 import net.sourceforge.plantuml.FileFormatOption;
 import net.sourceforge.plantuml.SourceStringReader;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.util.Random;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
+
+import static com.glovoapp.ownership.plotting.extensions.plantuml.Color.randomReadableColor;
+import static com.glovoapp.ownership.shared.Strings.repeat;
+import static java.util.stream.Collectors.joining;
+import static lombok.AccessLevel.PRIVATE;
 
 @Slf4j
 @RequiredArgsConstructor

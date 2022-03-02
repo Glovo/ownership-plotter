@@ -1,13 +1,5 @@
 package com.glovoapp.ownership.plotting;
 
-import static com.glovoapp.ownership.OwnershipAnnotationDefinition.MetaDataExtractor.metaDataExtractor;
-import static java.util.Collections.emptySet;
-import static java.util.Collections.singleton;
-import static java.util.stream.Collectors.groupingBy;
-import static java.util.stream.Collectors.mapping;
-import static java.util.stream.Collectors.toSet;
-import static lombok.AccessLevel.PRIVATE;
-
 import com.glovoapp.diagrams.Component.SimpleComponent;
 import com.glovoapp.diagrams.Diagram;
 import com.glovoapp.diagrams.Diagram.SimpleDiagram;
@@ -15,20 +7,22 @@ import com.glovoapp.diagrams.Identifier;
 import com.glovoapp.diagrams.IdentifierGenerator;
 import com.glovoapp.ownership.ClassOwnership;
 import com.glovoapp.ownership.OwnershipAnnotationDefinition.MetaDataExtractor;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Optional;
-import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+
+import static com.glovoapp.ownership.OwnershipAnnotationDefinition.MetaDataExtractor.metaDataExtractor;
+import static java.util.Collections.emptySet;
+import static java.util.Collections.singleton;
+import static java.util.stream.Collectors.*;
+import static lombok.AccessLevel.PRIVATE;
 
 public final class FeaturesDiagramDataFactory implements OwnershipDiagramFactory<ClassRelationship> {
 

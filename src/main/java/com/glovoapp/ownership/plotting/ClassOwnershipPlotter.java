@@ -1,17 +1,18 @@
 package com.glovoapp.ownership.plotting;
 
-import static java.util.stream.Collectors.toSet;
-
 import com.glovoapp.ownership.ClassOwnership;
 import com.glovoapp.ownership.ClassOwnershipExtractor;
 import com.glovoapp.ownership.classpath.ClasspathLoader;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.reflections.Reflections;
+
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.toSet;
 
 @Slf4j
 @RequiredArgsConstructor
