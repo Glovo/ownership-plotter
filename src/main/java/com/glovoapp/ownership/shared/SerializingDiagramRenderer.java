@@ -9,7 +9,6 @@ import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import com.glovoapp.diagrams.Diagram;
 import com.glovoapp.diagrams.DiagramRenderer;
 import com.glovoapp.diagrams.Identifier;
-import com.glovoapp.ownership.plotting.extensions.plantuml.PlantUMLIdentifier;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 
@@ -27,25 +26,17 @@ public final class SerializingDiagramRenderer<Id extends Identifier<Id>, Relatio
 
     private final Function<Diagram<Id, RelationshipType>, String> serializer;
 
+    @SuppressWarnings("rawtypes")
     public static <Id extends Identifier<Id>, RelationshipType> SerializingDiagramRenderer<Id, RelationshipType> ofJackson() {
         final ObjectMapper objectMapper = new ObjectMapper();
 
         SimpleModule module = new SimpleModule();
-        module.addSerializer(UUIDIdentifier.class, new StdSerializer<UUIDIdentifier>(UUIDIdentifier.class) {
+        module.addSerializer(Identifier.class, new StdSerializer<Identifier>(Identifier.class) {
             @Override
-            public final void serialize(final UUIDIdentifier value,
-                                        final JsonGenerator jsonGenerator,
-                                        final SerializerProvider serializerProvider) throws IOException {
+            public void serialize(final Identifier value,
+                                  final JsonGenerator jsonGenerator,
+                                  final SerializerProvider serializerProvider) throws IOException {
                 jsonGenerator.writeString(value.toString());
-            }
-        });
-        module.addSerializer(PlantUMLIdentifier.class, new StdSerializer<PlantUMLIdentifier>(PlantUMLIdentifier.class) {
-            @Override
-            public final void serialize(final PlantUMLIdentifier value,
-                                        final JsonGenerator jsonGenerator,
-                                        final SerializerProvider serializerProvider) throws IOException {
-                jsonGenerator.writeString(value.toString());
-
             }
         });
         objectMapper.registerModule(module);
@@ -61,7 +52,7 @@ public final class SerializingDiagramRenderer<Id extends Identifier<Id>, Relatio
 
     @Override
     @SneakyThrows
-    public final InputStream renderDiagram(final Diagram<Id, RelationshipType> diagram) {
+    public InputStream renderDiagram(final Diagram<Id, RelationshipType> diagram) {
         return new ByteArrayInputStream(
                 serializer.apply(diagram)
                         .getBytes()

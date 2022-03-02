@@ -25,10 +25,13 @@ import com.glovoapp.ownership.plotting.extensions.html.HTMLTemplateDiagramRender
 import com.glovoapp.ownership.plotting.extensions.html.HTMLTemplateDiagramRenderer.Template;
 import com.glovoapp.ownership.plotting.extensions.plantuml.PlantUMLDiagramRenderer;
 import com.glovoapp.ownership.plotting.extensions.plantuml.PlantUMLIdentifierGenerator;
+import com.glovoapp.ownership.shared.Base64IdentifierGenerator;
 import com.glovoapp.ownership.shared.DiagramToFileDataSink;
 import com.glovoapp.ownership.shared.NeighborRandomizerDiagramRendererWrapper;
 import com.glovoapp.ownership.shared.UUIDIdentifierGenerator;
 import java.io.File;
+import java.util.UUID;
+
 import lombok.extern.slf4j.Slf4j;
 import net.sourceforge.plantuml.FileFormat;
 import org.junit.jupiter.api.Test;
@@ -111,9 +114,9 @@ class ClassOwnershipPlotterTest {
                     )
             ),
             OwnershipDiagramPipeline.of(
-                new UUIDIdentifierGenerator(),
+                new Base64IdentifierGenerator(),
                 new FeaturesDiagramDataFactory(),
-                new HTMLTemplateDiagramRenderer(Template.TREEMAP),
+                new HTMLTemplateDiagramRenderer<>(Template.TREEMAP),
                 new DiagramToFileDataSink(
                     new File(getDiagramsOutputDirectory() + '/' + desiredOwner + "_FEATURES.html")
                 )
