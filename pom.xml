@@ -33,7 +33,7 @@
     <dependency>
       <groupId>org.reflections</groupId>
       <artifactId>reflections</artifactId>
-      <version>0.9.12</version>
+      <version>0.10.1</version>
     </dependency>
 
     <!-- Used in SerializingDiagramRenderer -->
@@ -148,8 +148,7 @@
             </goals>
             <configuration>
               <target>
-                <jar destfile="${project.build.directory}/${project.build.finalName}-sources.jar"
-                  basedir="${project.build.directory}/delombok"/>
+                <jar destfile="${project.build.directory}/${project.build.finalName}-sources.jar" basedir="${project.build.directory}/delombok"/>
               </target>
             </configuration>
           </execution>
